@@ -30,7 +30,7 @@
     }
 
     body {
-      font-family: 'Cinzel', 'Georgia', 'Times New Roman', serif;
+      font-family: 'Cinzel', 'Noto Serif KR', 'Georgia', 'Times New Roman', serif;
       background: var(--bg-dark);
       color: var(--parchment);
       overflow: hidden;
@@ -354,7 +354,7 @@
       position: absolute;
       bottom: 14px;
       left: 14px;
-      width: 320px;
+      width: 330px;
       height: 190px;
       background: rgba(20, 15, 11, 0.85);
       border: 1px solid var(--border-dark);
@@ -495,6 +495,26 @@
       border-color: var(--accent-gold);
     }
 
+    /* Language Switcher */
+    .lang-switcher-btn {
+      background: #38281a;
+      border: 1px solid var(--accent-gold);
+      color: var(--accent-gold-light);
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      cursor: pointer;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.2s;
+    }
+    .lang-switcher-btn:hover {
+      background: var(--accent-gold);
+      color: #12100e;
+    }
+
     /* Rich Tooltip */
     #game-tooltip {
       position: absolute;
@@ -538,21 +558,21 @@
     <div class="hud-group">
       <div class="fief-title">
         <span>⚔️</span>
-        <span>Ashborne Fief</span>
+        <span id="txt-fief-title">애시본 영지</span>
       </div>
 
       <!-- Season & Year -->
       <div id="season-badge" class="season-badge season-spring">
         <span id="season-icon">🌱</span>
-        <span id="season-text">Spring, Year 1</span>
+        <span id="season-text">봄, 1년차</span>
       </div>
 
       <!-- Speed buttons -->
       <div class="hud-group" style="gap: 4px;">
-        <button class="speed-btn" id="btn-speed-pause" title="Pause (Space)">⏸</button>
-        <button class="speed-btn active" id="btn-speed-1" title="Normal Speed (1x)">1x</button>
-        <button class="speed-btn" id="btn-speed-2" title="Fast Speed (2x)">2x</button>
-        <button class="speed-btn" id="btn-speed-5" title="Very Fast (5x)">5x</button>
+        <button class="speed-btn" id="btn-speed-pause" title="일시정지 (Space)">⏸</button>
+        <button class="speed-btn active" id="btn-speed-1" title="1배속">1x</button>
+        <button class="speed-btn" id="btn-speed-2" title="2배속">2x</button>
+        <button class="speed-btn" id="btn-speed-5" title="5배속">5x</button>
       </div>
     </div>
 
@@ -561,13 +581,13 @@
       <div class="hud-item" id="hud-pop">
         <span class="hud-icon">👥</span>
         <span class="val" id="val-pop">10/12</span>
-        <span class="lbl">(Idle: <span id="val-idle">3</span>)</span>
+        <span class="lbl">(<span id="lbl-idle-txt">유휴</span>: <span id="val-idle">3</span>)</span>
       </div>
 
       <div class="hud-item" id="hud-approval">
         <span class="hud-icon">👑</span>
         <span class="val val-approval" id="val-approval">65%</span>
-        <span class="lbl" id="lbl-approval-status">Content</span>
+        <span class="lbl" id="lbl-approval-status">만족</span>
       </div>
 
       <div class="hud-item" id="hud-gold">
@@ -578,7 +598,7 @@
       <div class="hud-item" id="hud-food">
         <span class="hud-icon">🥖</span>
         <span class="val" id="val-food">60</span>
-        <span class="lbl">(<span id="val-food-days">30</span>d)</span>
+        <span class="lbl">(<span id="val-food-days">30</span><span id="lbl-food-unit">일분</span>)</span>
       </div>
 
       <div class="hud-item" id="hud-wood">
@@ -592,20 +612,21 @@
       </div>
     </div>
 
-    <!-- Right HUD: Settings, Sound, Save -->
+    <!-- Right HUD: Language, Taxes, Audio, Save, Reset, Guide -->
     <div class="hud-group">
-      <button class="top-action-btn" id="btn-tax-modal">⚖️ Taxes (<span id="btn-tax-val">5%</span>)</button>
-      <button class="top-action-btn" id="btn-sound-toggle">🔊 Audio: On</button>
-      <button class="top-action-btn" id="btn-save-game">💾 Save</button>
-      <button class="top-action-btn" id="btn-new-game" style="color:#e08585;">🔄 Reset</button>
-      <button class="top-action-btn" id="btn-help-modal">📜 Guide</button>
+      <button class="lang-switcher-btn" id="btn-lang-toggle" title="Switch Language / 언어 전환">🌐 한국어</button>
+      <button class="top-action-btn" id="btn-tax-modal">⚖️ <span id="txt-tax-btn">세율</span> (<span id="btn-tax-val">5%</span>)</button>
+      <button class="top-action-btn" id="btn-sound-toggle">🔊 <span id="txt-audio-btn">오디오: 켬</span></button>
+      <button class="top-action-btn" id="btn-save-game">💾 <span id="txt-save-btn">저장</span></button>
+      <button class="top-action-btn" id="btn-new-game" style="color:#e08585;">🔄 <span id="txt-reset-btn">새 게임</span></button>
+      <button class="top-action-btn" id="btn-help-modal">📜 <span id="txt-guide-btn">안내서</span></button>
     </div>
   </header>
 
   <!-- Threat Alert Banner -->
   <div id="threat-alert">
     <span>⚠️</span>
-    <span id="threat-alert-msg">BANDITS SIGHTED: Raider warband approaching the fief in 45 days!</span>
+    <span id="threat-alert-msg">산적단 접근 중: 45초 후 약탈단이 습격합니다! 민병대를 소집하십시오!</span>
   </div>
 
   <!-- Minimap -->
@@ -616,12 +637,12 @@
   <!-- Left Chronicle Log -->
   <div id="chronicle-panel">
     <div id="chronicle-header">
-      <span>📜 Fief Chronicle</span>
-      <span style="font-size: 10px; color:#8c7860;">Latest events</span>
+      <span id="txt-chronicle-header">📜 영지 연대기</span>
+      <span style="font-size: 10px; color:#8c7860;" id="txt-chronicle-sub">최신 기록</span>
     </div>
     <div id="chronicle-logs">
-      <div class="log-item">Lord Valedor takes command of the desolate Ashborne riverside.</div>
-      <div class="log-item">Spring has arrived. Sowing wheat and securing logs must begin.</div>
+      <div class="log-item">영주 발레도르 경이 황폐화된 애시본 강변에 부임하였습니다.</div>
+      <div class="log-item">따스한 봄이 왔습니다. 밀 파종과 원목 확보를 서두르십시오.</div>
     </div>
   </div>
 
@@ -632,38 +653,38 @@
   <div id="bottom-bar">
     <button class="build-tab-btn" data-category="infra">
       <span>🛣️</span>
-      <span>Infrastructure</span>
+      <span id="tab-infra-txt">기반시설</span>
     </button>
     <button class="build-tab-btn" data-category="resource">
       <span>🪓</span>
-      <span>Extraction</span>
+      <span id="tab-res-txt">자원채취</span>
     </button>
     <button class="build-tab-btn" data-category="farming">
       <span>🌾</span>
-      <span>Agriculture</span>
+      <span id="tab-farm-txt">농경식량</span>
     </button>
     <button class="build-tab-btn" data-category="crafting">
       <span>⚒️</span>
-      <span>Industry</span>
+      <span id="tab-craft-txt">가공산업</span>
     </button>
     <button class="build-tab-btn" data-category="civic">
       <span>⛪</span>
-      <span>Civic & Church</span>
+      <span id="tab-civic-txt">사회신앙</span>
     </button>
     <button class="build-tab-btn" data-category="military">
       <span>🏰</span>
-      <span>Defense & Army</span>
+      <span id="tab-mil-txt">성채군사</span>
     </button>
     <button class="build-tab-btn" id="btn-demolish-mode" style="border-color:#8b2323;">
       <span>🔨</span>
-      <span>Demolish</span>
+      <span id="tab-demo-txt">철거</span>
     </button>
   </div>
 
   <!-- Right Inspector Panel -->
   <aside id="inspector-panel">
     <div class="panel-header">
-      <div class="panel-title" id="insp-title">Burgage Plot #1</div>
+      <div class="panel-title" id="insp-title">가구 부지 #1</div>
       <button class="panel-close-btn" id="btn-close-insp">✕</button>
     </div>
     <div id="insp-body"></div>
@@ -673,46 +694,42 @@
   <div class="modal-overlay" id="modal-tax">
     <div class="modal-card">
       <div class="panel-header">
-        <div class="panel-title">⚖️ Fief Taxation & Feudal Tithes</div>
+        <div class="panel-title" id="tax-modal-title">⚖️ 봉건 영지 조세 및 십일조</div>
         <button class="panel-close-btn" onclick="document.getElementById('modal-tax').classList.remove('show')">✕</button>
       </div>
-      <p style="font-size:12px; color:var(--parchment-dark); line-height:1.4;">
-        Levy monthly coinage from settled households. Higher taxation rapidly diminishes approval, leading to emigration and banditry.
+      <p style="font-size:12px; color:var(--parchment-dark); line-height:1.4;" id="tax-modal-desc">
+        정착 가구들로부터 매월 영주 국고를 거둡니다. 과도한 과세는 민심을 급락시켜 유민의 유입을 막고 폭동 위험을 부릅니다.
       </p>
       <div class="slider-container">
         <div style="display:flex; justify-content:space-between; font-size:13px;">
-          <span>Tax Rate:</span>
+          <span id="tax-slider-lbl">영주 세율:</span>
           <span id="tax-slider-val" style="font-weight:bold; color:var(--accent-gold);">5%</span>
         </div>
         <input type="range" id="tax-slider" min="0" max="30" step="1" value="5">
       </div>
       <div class="stat-row">
-        <span>Estimated Monthly Income:</span>
-        <span id="tax-est-gold">+3 Gold / mo</span>
+        <span id="tax-est-gold-lbl">예상 월 수입:</span>
+        <span id="tax-est-gold">+3 골드 / 월</span>
       </div>
       <div class="stat-row">
-        <span>Approval Impact:</span>
-        <span id="tax-est-approval" style="color:#ff8888;">-4% / mo</span>
+        <span id="tax-est-app-lbl">민심 영향:</span>
+        <span id="tax-est-approval" style="color:#ff8888;">-4% / 월</span>
       </div>
-      <button class="action-btn" onclick="document.getElementById('modal-tax').classList.remove('show')">Confirm Decrees</button>
+      <button class="action-btn" id="tax-modal-btn" onclick="document.getElementById('modal-tax').classList.remove('show')">조세 칙령 반포</button>
     </div>
   </div>
 
   <!-- Guide Modal -->
   <div class="modal-overlay" id="modal-help">
-    <div class="modal-card" style="width: 520px; max-height:85vh; overflow-y:auto;">
+    <div class="modal-card" style="width: 530px; max-height:85vh; overflow-y:auto;">
       <div class="panel-header">
-        <div class="panel-title">📜 Lord's Guidebook (Ashborne)</div>
+        <div class="panel-title" id="help-modal-title">📜 영주 집무 지침서 (애시본 영지)</div>
         <button class="panel-close-btn" onclick="document.getElementById('modal-help').classList.remove('show')">✕</button>
       </div>
-      <div style="font-size:12px; color:#d8c39d; line-height:1.5; display:flex; flex-direction:column; gap:10px;">
-        <p><strong>1. Settling & Housing:</strong> Construct <em>Dirt Roads</em> to connect facilities. Build <em>Burgage Plots</em> so peasants have warm shelter. Upgrade their backyards into Vegetable Gardens or Chicken Coops to supply passive foodstuffs!</p>
-        <p><strong>2. The 4 Seasons:</strong> In <em>Spring</em>, assign farmers to plow and sow wheat fields. In <em>Summer</em>, crops ripen. In <em>Autumn</em>, harvest grains swiftly. In <em>Winter</em>, the river freezes and farmland ceases—ensure you stockpile <em>Firewood</em> and food or your peasants will freeze and starve!</p>
-        <p><strong>3. Production Chains:</strong> Raw Logs → Sawmill (Planks & Firewood). Wheat → Windmill (Flour) → Bakery (Bread). Iron Ore + Wood → Blacksmith (Spears & Bows). Diverse foods boost your <em>Approval</em>!</p>
-        <p><strong>4. Militia & Fortress Defense:</strong> When raiders or rival knights approach, raise <em>Spear Militia</em> and <em>Archer Militia</em> from your drafted workers. Position Archers atop <em>Watchtowers</em> or behind <em>Stone Walls</em> for immense range and defensive multipliers.</p>
-        <p><strong>5. Controls:</strong> Left-drag / WASD to pan camera. Mouse wheel to zoom. Left-click to select buildings or drag-box militia. Right-click to command militia movement and attack.</p>
+      <div id="help-modal-content" style="font-size:12px; color:#d8c39d; line-height:1.5; display:flex; flex-direction:column; gap:10px;">
+        <!-- Filled dynamically by i18n -->
       </div>
-      <button class="action-btn" onclick="document.getElementById('modal-help').classList.remove('show')">Return to Manor</button>
+      <button class="action-btn" id="help-modal-btn" onclick="document.getElementById('modal-help').classList.remove('show')">영지로 복귀</button>
     </div>
   </div>
 
@@ -726,6 +743,258 @@
        Pure Vanilla JS, 2D Isometric Canvas, Procedural Web Audio API
        ========================================================================== */
 
+    // --- I18N Localization Dictionary (Korean & English) ---
+    const I18N = {
+      ko: {
+        lang_btn: '🌐 한국어',
+        fief_title: '애시본 영지',
+        season_spring: '봄',
+        season_summer: '여름',
+        season_autumn: '가을',
+        season_winter: '겨울',
+        season_format: '{season}, {year}년차',
+        idle_txt: '유휴',
+        food_unit: '일분',
+        approval_euphoric: '열광',
+        approval_content: '만족',
+        approval_discontent: '불만',
+        btn_tax: '세율',
+        btn_audio_on: '오디오: 켬',
+        btn_audio_muted: '오디오: 끔',
+        btn_save: '저장',
+        btn_reset: '새 게임',
+        btn_guide: '안내서',
+        threat_alert: '약탈단 접근 중: {time}초 후 적군이 습격합니다! 민병대를 소집하십시오!',
+        chronicle_header: '📜 영지 연대기',
+        chronicle_sub: '최신 기록',
+        tab_infra: '기반시설',
+        tab_res: '자원채취',
+        tab_farm: '농경식량',
+        tab_craft: '가공산업',
+        tab_civic: '사회신앙',
+        tab_mil: '성채군사',
+        tab_demo: '철거',
+        tax_title: '⚖️ 봉건 영지 조세 및 십일조',
+        tax_desc: '정착 가구들로부터 매월 영주 국고를 거둡니다. 과도한 과세는 민심을 급락시켜 유민의 유입을 막고 폭동 위험을 부릅니다.',
+        tax_rate_lbl: '영주 세율:',
+        tax_est_gold_lbl: '예상 월 수입:',
+        tax_est_app_lbl: '민심 영향:',
+        tax_confirm_btn: '조세 칙령 반포',
+        gold_per_mo: '+{val} 골드 / 월',
+        app_per_mo: '-{val}% / 월',
+        guide_title: '📜 영주 집무 지침서 (애시본 영지)',
+        guide_p1: '<strong>1. 정착 및 주거:</strong> 이동 시간을 줄이려면 <em>흙길</em>을 먼저 연결하십시오. 백성들을 위해 <em>가구 부지</em>를 건설하십시오. 주택의 뒷마당을 채소 텃밭이나 닭장으로 확장하면 사계절 내내 귀중한 식량이 공급됩니다!',
+        guide_p2: '<strong>2. 혹독한 4계절:</strong> <em>봄</em>에는 농부를 배치해 밀밭을 갈고 파종하십시오. <em>여름</em>에는 곡식이 무르익습니다. <em>가을</em>에는 총력을 다해 수확하십시오. <em>겨울</em>에는 강이 얼고 농경이 중단됩니다. <em>장작</em>이 바닥나면 백성들이 얼어 죽으니 미리 충분히 비축하십시오!',
+        guide_p3: '<strong>3. 2차 가공 사슬:</strong> 원목 → 제재소 (건축 판자 & 난방 장작). 곡물 → 풍차 (밀가루) → 공동 제빵소 (빵). 철광석 + 원목 → 대장간 (창 & 활). 다양한 식단(빵, 고기, 베리, 채소, 달걀)을 공급하면 백성들의 민심이 크게 상승합니다!',
+        guide_p4: '<strong>4. 민병대 & 수성 방어:</strong> 산적 떼가 다가오면 대장간의 무기로 농민들을 <em>창병대</em>와 <em>궁병대</em>로 즉각 소집하십시오. 궁병을 <em>방어 망루</em> 위에 배치하면 사거리 1.8배, 공격력 1.5배의 막강한 고지대 특권을 얻습니다.',
+        guide_p5: '<strong>5. 조작법:</strong> 좌클릭 드래그 / WASD로 시점 이동. 마우스 휠로 줌. 좌클릭으로 건물/유닛 선택 및 건축. 우클릭으로 선택된 민병대 이동/공격 명령 (건축 모드 취소).',
+        guide_btn_close: '영지로 복귀',
+        tip_food_title: '식량 비축 현황',
+        tip_bread: '빵',
+        tip_meat: '고기',
+        tip_berries: '베리',
+        tip_vegetables: '채소',
+        tip_eggs: '달걀',
+        tip_food_desc: '식단 가짓수가 많을수록 민심과 건강도가 대폭 상승합니다!',
+        tip_approval_title: '백성 민심',
+        tip_app_high: '55% 이상: 새로운 유민들이 영지로 정착 유입',
+        tip_app_mid: '50% 미만: 불만 고조 및 생산 능률 저하',
+        tip_app_low: '25% 이하: 백성 탈주 및 반란 위험',
+        tip_demo_title: '인구 및 주택 현황',
+        tip_total_pop: '총 인구',
+        tip_housing_cap: '주거 수용량',
+        tip_homeless: '노숙자',
+        btn_muster_spear_card: '🛡️ 창병 민병대 소집',
+        btn_muster_spear_cost: '소모: 창 1자루, 성인 1명',
+        btn_muster_spear_desc: '건장한 농민에게 창을 쥐여 전열 방어에 투입합니다.',
+        btn_muster_spear_btn: '창병 징집 (+1)',
+        btn_muster_bow_card: '🏹 궁병 민병대 소집',
+        btn_muster_bow_cost: '소모: 활 1자루, 성인 1명',
+        btn_muster_bow_desc: '궁병을 소집합니다. 망루 위에 배치 시 치명적 원거리 공격을 퍼붓습니다.',
+        btn_muster_bow_btn: '궁병 징집 (+1)',
+        insp_integrity: '건물 내구도:',
+        insp_location: '배치 좌표:',
+        insp_workers: '배치된 장인:',
+        insp_btn_add_worker: '+ 장인 배치',
+        insp_btn_rem_worker: '- 해제',
+        insp_backyard_title: '🏡 뒷마당 부속 채원:',
+        insp_backyard_none: '없음 (휴경지)',
+        insp_backyard_desc: '주택 뒤편 부지를 개발하여 연중 안정적인 식량을 자급자족합니다.',
+        insp_btn_veg: '🌱 채소 텃밭 (판자 5)',
+        insp_btn_chk: '🐔 닭장 (판자 4)',
+        insp_btn_goat: '🐐 염소 우리 (판자 6)',
+        insp_smith_title: '⚒️ 대장간 주조 품목:',
+        insp_smith_spear: '창 (Spears)',
+        insp_smith_bow: '활 (Bows)',
+        insp_smith_tool: '도구 (Tools)',
+        insp_btn_demolish: '🔨 건물 철거 (자재 50% 회수)',
+        unit_bandit: '⚔️ 습격 약탈단',
+        unit_readiness: '전투 준비도:',
+        unit_attack: '공격력:',
+        unit_range: '사거리:',
+        unit_tiles: '타일',
+        unit_order_desc_enemy: '영지 건물을 불태우고 창고 자원을 약탈하려는 흉악한 무리입니다!',
+        unit_order_desc_friend: '지도를 우클릭하여 이동시키거나 적을 우클릭하여 집중 공격을 명령하십시오.',
+        unit_btn_disband: '평시 농민으로 소집 해제',
+        new_game_confirm: '새 게임을 시작하시겠습니까? 현재 영지의 모든 진행 상황이 초기화됩니다.',
+        log_init_1: '영주 발레도르 경이 황폐화된 애시본 강변에 부임하였습니다.',
+        log_init_2: '따스한 봄이 왔습니다. 밀 파종과 원목 확보를 서두르십시오.',
+        log_save: '영지 연대기가 마을 고문서에 기록되었습니다 (저장 완료).',
+        log_loaded: '이전에 저장된 애시본 영지 기록을 불러왔습니다.',
+        log_year_dawn: '{year}년차 새해가 밝았습니다.',
+        log_season_turned: '계절이 {season}(으)로 바뀌었습니다.',
+        log_no_bounds: '영지 경계선 밖에는 건축할 수 없습니다!',
+        log_water_obstruct: '강물 위에는 건물을 지을 수 없습니다!',
+        log_space_obstruct: '이미 다른 건물이 부지를 차지하고 있습니다.',
+        log_insufficient_res: '{res} 자원이 부족합니다 (필요량: {amt})!',
+        log_built: '[{x}, {y}] 위치에 {name} 건축을 완료했습니다.',
+        log_demolished: '{name} 건물을 철거했습니다. 50%의 자재를 회수했습니다.',
+        log_backyard_need_plank: '뒷마당 {type} 구축에 판자 {cost}개가 필요합니다!',
+        log_backyard_done: '가구 뒷마당에 {type} 조성을 완료했습니다.',
+        log_no_free_worker: '영지에 배치 가능한 유휴 성인 노동자가 없습니다!',
+        log_no_weapon: '무기고에 완성된 {weapon}이(가) 없습니다! 대장간에서 먼저 제작하십시오.',
+        log_no_citizen_draft: '징집할 수 있는 성인 백성이 없습니다!',
+        log_militia_drafted: '군기를 높이 들었습니다: {type} 민병대가 결집했습니다!',
+        log_militia_disbanded: '{type} 민병대가 평시 농민으로 복귀했습니다.',
+        log_perished: '{name} 백성이 혹한이나 굶주림으로 목숨을 잃었습니다!',
+        log_bandit_alarm: '비상! 황야에서 {count}명의 산적 약탈단이 습격했습니다!',
+        log_bandit_slain: '방어군이 침략 약탈자를 처단했습니다! (현상금 +5골드)',
+        log_hero_fallen: '용맹한 {type} 전사가 전장에서 산화했습니다!',
+        log_victory: '대승리! 침략군을 완전히 격퇴했습니다. 영지 민심이 솟구칩니다!',
+        log_migrants: '{count}명의 피난 유민 가족이 애시본에 새로이 정착했습니다.'
+      },
+      en: {
+        lang_btn: '🌐 English',
+        fief_title: 'Ashborne Fief',
+        season_spring: 'Spring',
+        season_summer: 'Summer',
+        season_autumn: 'Autumn',
+        season_winter: 'Winter',
+        season_format: '{season}, Year {year}',
+        idle_txt: 'Idle',
+        food_unit: 'd',
+        approval_euphoric: 'Euphoric',
+        approval_content: 'Content',
+        approval_discontent: 'Discontent',
+        btn_tax: 'Taxes',
+        btn_audio_on: 'Audio: On',
+        btn_audio_muted: 'Audio: Muted',
+        btn_save: 'Save',
+        btn_reset: 'Reset',
+        btn_guide: 'Guide',
+        threat_alert: 'BANDITS SIGHTED: Raider warband arriving in {time}s! Muster militia!',
+        chronicle_header: '📜 Fief Chronicle',
+        chronicle_sub: 'Latest events',
+        tab_infra: 'Infrastructure',
+        tab_res: 'Extraction',
+        tab_farm: 'Agriculture',
+        tab_craft: 'Industry',
+        tab_civic: 'Civic & Faith',
+        tab_mil: 'Defense & Army',
+        tab_demo: 'Demolish',
+        tax_title: '⚖️ Fief Taxation & Feudal Tithes',
+        tax_desc: 'Levy monthly coinage from settled households. Higher taxation rapidly diminishes approval, leading to emigration and banditry.',
+        tax_rate_lbl: 'Tax Rate:',
+        tax_est_gold_lbl: 'Estimated Income:',
+        tax_est_app_lbl: 'Approval Impact:',
+        tax_confirm_btn: 'Confirm Decrees',
+        gold_per_mo: '+{val} Gold / mo',
+        app_per_mo: '-{val}% / mo',
+        guide_title: "📜 Lord's Guidebook (Ashborne)",
+        guide_p1: '<strong>1. Settling & Housing:</strong> Construct <em>Dirt Roads</em> to connect facilities. Build <em>Burgage Plots</em> so peasants have warm shelter. Upgrade their backyards into Vegetable Gardens or Chicken Coops to supply passive foodstuffs!',
+        guide_p2: '<strong>2. The 4 Seasons:</strong> In <em>Spring</em>, assign farmers to plow and sow wheat fields. In <em>Summer</em>, crops ripen. In <em>Autumn</em>, harvest grains swiftly. In <em>Winter</em>, the river freezes and farmland ceases—ensure you stockpile <em>Firewood</em> and food or your peasants will freeze and starve!',
+        guide_p3: '<strong>3. Production Chains:</strong> Raw Logs → Sawmill (Planks & Firewood). Wheat → Windmill (Flour) → Bakery (Bread). Iron Ore + Wood → Blacksmith (Spears & Bows). Diverse foods boost your <em>Approval</em>!',
+        guide_p4: '<strong>4. Militia & Fortress Defense:</strong> When raiders approach, raise <em>Spear Militia</em> and <em>Archer Militia</em> from your drafted workers. Position Archers atop <em>Watchtowers</em> or behind <em>Stone Walls</em> for immense range and defensive multipliers.',
+        guide_p5: '<strong>5. Controls:</strong> Left-drag / WASD to pan camera. Mouse wheel to zoom. Left-click to select buildings or draft militia. Right-click to command militia movement and attack (cancels build mode).',
+        guide_btn_close: 'Return to Manor',
+        tip_food_title: 'Food Stockpile',
+        tip_bread: 'Bread',
+        tip_meat: 'Meat',
+        tip_berries: 'Berries',
+        tip_vegetables: 'Vegetables',
+        tip_eggs: 'Eggs',
+        tip_food_desc: 'Diet diversity directly boosts peasant approval!',
+        tip_approval_title: 'Peasant Approval',
+        tip_app_high: '>= 55%: Weary migrants seek shelter in your fief',
+        tip_app_mid: '< 50%: Grumbling and slow production',
+        tip_app_low: '< 25%: High risk of riot and abandonment',
+        tip_demo_title: 'Demographics',
+        tip_total_pop: 'Population',
+        tip_housing_cap: 'Shelter Capacity',
+        tip_homeless: 'Homeless',
+        btn_muster_spear_card: '🛡️ Muster Spear Militia',
+        btn_muster_spear_cost: 'Cost: 1 Spear, 1 Peasant',
+        btn_muster_spear_desc: 'Equip an able-bodied laborer with a spear to defend against bandits.',
+        btn_muster_spear_btn: 'Draft Spearmen (+1)',
+        btn_muster_bow_card: '🏹 Muster Archer Militia',
+        btn_muster_bow_cost: 'Cost: 1 Bow, 1 Peasant',
+        btn_muster_bow_desc: 'Draft archers for lethal ranged attacks. Extreme advantage atop towers.',
+        btn_muster_bow_btn: 'Draft Archers (+1)',
+        insp_integrity: 'Integrity:',
+        insp_location: 'Location:',
+        insp_workers: 'Assigned Artisans:',
+        insp_btn_add_worker: '+ Assign Worker',
+        insp_btn_rem_worker: '- Remove',
+        insp_backyard_title: '🏡 Backyard Extension:',
+        insp_backyard_none: 'None (Fallow)',
+        insp_backyard_desc: 'Expand the rear plot to cultivate food continuously throughout the year.',
+        insp_btn_veg: '🌱 Vegetable Patch (5 Planks)',
+        insp_btn_chk: '🐔 Chicken Coop (4 Planks)',
+        insp_btn_goat: '🐐 Goat Shed (6 Planks)',
+        insp_smith_title: '⚒️ Production Focus:',
+        insp_smith_spear: 'Spears',
+        insp_smith_bow: 'Bows',
+        insp_smith_tool: 'Tools',
+        insp_btn_demolish: '🔨 Demolish Building (50% Refund)',
+        unit_bandit: '⚔️ Raider Invader',
+        unit_readiness: 'Combat Readiness:',
+        unit_attack: 'Damage:',
+        unit_range: 'Range:',
+        unit_tiles: 'Tiles',
+        unit_order_desc_enemy: 'Ravage and burn orders. Destroying local storage and households!',
+        unit_order_desc_friend: 'Right-click anywhere on the map to order movement or target enemy forces.',
+        unit_btn_disband: 'Demobilize to Civilian',
+        new_game_confirm: 'Start a new game? All current fief progress will be reset.',
+        log_init_1: 'Lord Valedor takes command of the desolate Ashborne riverside.',
+        log_init_2: 'Spring has arrived. Sowing wheat and securing logs must begin.',
+        log_save: 'Fief state recorded into village archives (Saved).',
+        log_loaded: 'Loaded previously saved Ashborne fief chronicle.',
+        log_year_dawn: 'Year {year} dawns across the fiefdom.',
+        log_season_turned: 'The season has turned to {season}.',
+        log_no_bounds: 'Cannot build outside fief boundaries!',
+        log_water_obstruct: 'Cannot build atop riverbed!',
+        log_space_obstruct: 'Ground is obstructed by existing structure.',
+        log_insufficient_res: 'Insufficient {res} (Required: {amt})!',
+        log_built: 'Constructed {name} at [{x}, {y}].',
+        log_demolished: 'Demolished {name}. Recovered 50% materials.',
+        log_backyard_need_plank: 'Need {cost} Planks to build backyard {type}!',
+        log_backyard_done: 'Established {type} backyard extension on household.',
+        log_no_free_worker: 'No idle adult laborers available in the fief!',
+        log_no_weapon: 'No forged {weapon} in the armoury! Produce at blacksmith.',
+        log_no_citizen_draft: 'No able-bodied citizens to conscript!',
+        log_militia_drafted: 'Muster banner raised: {type} rallied to arms!',
+        log_militia_disbanded: '{type} unit demobilized back to fields.',
+        log_perished: '{name} perished from exposure or hunger!',
+        log_bandit_alarm: 'ALARM! {count} Bandits have invaded from the wilderness!',
+        log_bandit_slain: 'Raider vanquished by defenders! (+5 Gold bounty)',
+        log_hero_fallen: 'Heroic {type} fallen in battle!',
+        log_victory: 'VICTORY! The fief repelled the invaders. Peasant approval surged!',
+        log_migrants: '{count} weary peasant migrants settled in Ashborne.'
+      }
+    };
+
+    // Current Active Language (Default Korean per User Request)
+    let currentLang = localStorage.getItem('ashborne_lang') || 'ko';
+
+    function t(key, params = {}) {
+      let str = (I18N[currentLang] && I18N[currentLang][key]) || I18N['en'][key] || key;
+      for (const [k, v] of Object.entries(params)) {
+        str = str.replace(new RegExp(`\\{${k}\\}`, 'g'), v);
+      }
+      return str;
+    }
+
+    // --- Audio Engine (Web Audio API Synthesizer) ---
     class SoundEngine {
       constructor() {
         this.ctx = null;
@@ -916,128 +1185,139 @@
       FERTILE: 5
     };
 
+    // Buildings Definitions with Dual-language names and descriptions
     const BUILDINGS = {
       DIRT_ROAD: {
-        id: 'DIRT_ROAD', name: 'Dirt Road', cat: 'infra',
-        w: 1, h: 1, cost: { wood: 0 },
-        desc: 'Increases villager movement speed by 60%.'
+        id: 'DIRT_ROAD', cat: 'infra', w: 1, h: 1, cost: { wood: 0 },
+        names: { ko: '비포장 흙길', en: 'Dirt Road' },
+        descs: { ko: '주민들의 이동 속도를 60% 가속합니다.', en: 'Increases villager movement speed by 60%.' }
       },
       COBBLE_ROAD: {
-        id: 'COBBLE_ROAD', name: 'Cobblestone Road', cat: 'infra',
-        w: 1, h: 1, cost: { stone: 1 },
-        desc: 'Paved stone road. 90% speed boost and higher fire resistance.'
+        id: 'COBBLE_ROAD', cat: 'infra', w: 1, h: 1, cost: { stone: 1 },
+        names: { ko: '포장 석판길', en: 'Cobblestone Road' },
+        descs: { ko: '견고한 포장 도로. 이동 속도 90% 증가.', en: 'Paved stone road. 90% speed boost.' }
       },
       BURGAGE_PLOT: {
-        id: 'BURGAGE_PLOT', name: 'Burgage Plot', cat: 'infra',
-        w: 2, h: 2, cost: { wood: 5, planks: 2 },
-        desc: 'Houses 1 family (up to 4 people). Backyard can be upgraded for food.'
+        id: 'BURGAGE_PLOT', cat: 'infra', w: 2, h: 2, cost: { wood: 5, planks: 2 },
+        names: { ko: '가구 부지 (주택)', en: 'Burgage Plot' },
+        descs: { ko: '1가구(최대 4인) 수용. 뒷마당에 텃밭이나 닭장 조성 가능.', en: 'Houses 1 family. Backyard can be upgraded for food.' }
       },
       WELL: {
-        id: 'WELL', name: 'Water Well', cat: 'infra',
-        w: 1, h: 1, cost: { wood: 3, stone: 4 },
-        desc: 'Provides fresh water for villagers and assists fire extinguishing.'
+        id: 'WELL', cat: 'infra', w: 1, h: 1, cost: { wood: 3, stone: 4 },
+        names: { ko: '식수 우물', en: 'Water Well' },
+        descs: { ko: '신선한 식수를 제공하고 화재 진압을 돕습니다.', en: 'Provides fresh water and aids fire extinguishing.' }
       },
 
       LOGGING_CAMP: {
-        id: 'LOGGING_CAMP', name: 'Logging Camp', cat: 'resource',
-        w: 2, h: 2, cost: { wood: 6 }, maxWorkers: 2,
-        desc: 'Fells nearby forest trees into raw timber logs.'
+        id: 'LOGGING_CAMP', cat: 'resource', w: 2, h: 2, cost: { wood: 6 }, maxWorkers: 2,
+        names: { ko: '벌목소', en: 'Logging Camp' },
+        descs: { ko: '숲의 나무를 베어 통나무(원목)를 생산합니다.', en: 'Fells nearby forest trees into raw timber logs.' }
       },
       SAWPIT: {
-        id: 'SAWPIT', name: 'Sawpit', cat: 'resource',
-        w: 2, h: 2, cost: { wood: 8 }, maxWorkers: 2,
-        desc: 'Converts raw logs into construction Planks and Firewood.'
+        id: 'SAWPIT', cat: 'resource', w: 2, h: 2, cost: { wood: 8 }, maxWorkers: 2,
+        names: { ko: '제재소', en: 'Sawpit' },
+        descs: { ko: '원목을 가공하여 건축용 판자와 겨울용 장작을 만듭니다.', en: 'Converts raw logs into Planks and Firewood.' }
       },
       FORAGER_HUT: {
-        id: 'FORAGER_HUT', name: 'Forager Hut', cat: 'resource',
-        w: 2, h: 2, cost: { wood: 4 }, maxWorkers: 2,
-        desc: 'Gathers wild seasonal berries and herbs from the brush.'
+        id: 'FORAGER_HUT', cat: 'resource', w: 2, h: 2, cost: { wood: 4 }, maxWorkers: 2,
+        names: { ko: '채집꾼 오두막', en: 'Forager Hut' },
+        descs: { ko: '야생 덤불에서 계절 베리와 약초를 채집합니다.', en: 'Gathers wild seasonal berries and herbs.' }
       },
       HUNTING_CAMP: {
-        id: 'HUNTING_CAMP', name: 'Hunting Camp', cat: 'resource',
-        w: 2, h: 2, cost: { wood: 6 }, maxWorkers: 2,
-        desc: 'Hunts wild forest game for meat and hides.'
+        id: 'HUNTING_CAMP', cat: 'resource', w: 2, h: 2, cost: { wood: 6 }, maxWorkers: 2,
+        names: { ko: '사냥꾼 오두막', en: 'Hunting Camp' },
+        descs: { ko: '숲속 야생동물을 사냥하여 신선한 고기를 얻습니다.', en: 'Hunts wild forest game for meat and hides.' }
       },
       STONE_QUARRY: {
-        id: 'STONE_QUARRY', name: 'Stone Quarry', cat: 'resource',
-        w: 2, h: 2, cost: { wood: 10 }, maxWorkers: 2,
-        desc: 'Extracts cut stones from stone outcrop nodes.'
+        id: 'STONE_QUARRY', cat: 'resource', w: 2, h: 2, cost: { wood: 10 }, maxWorkers: 2,
+        names: { ko: '채석장', en: 'Stone Quarry' },
+        descs: { ko: '암반 노드에서 석조 건축용 돌을 채취합니다.', en: 'Extracts cut stones from stone outcrops.' }
       },
       IRON_MINE: {
-        id: 'IRON_MINE', name: 'Iron Mine', cat: 'resource',
-        w: 2, h: 2, cost: { wood: 12, planks: 4 }, maxWorkers: 2,
-        desc: 'Excavates iron ore from hillside veins for weapon smithing.'
+        id: 'IRON_MINE', cat: 'resource', w: 2, h: 2, cost: { wood: 12, planks: 4 }, maxWorkers: 2,
+        names: { ko: '철광산', en: 'Iron Mine' },
+        descs: { ko: '광맥에서 무기 및 도구 제작에 쓰일 철광석을 캡니다.', en: 'Excavates iron ore from veins for smithing.' }
       },
 
       WHEAT_FIELD: {
-        id: 'WHEAT_FIELD', name: 'Wheat Field', cat: 'farming',
-        w: 3, h: 3, cost: { wood: 4 }, maxWorkers: 3,
-        desc: 'Sown in Spring, matures in Summer, and harvested in Autumn for Grain.'
+        id: 'WHEAT_FIELD', cat: 'farming', w: 3, h: 3, cost: { wood: 4 }, maxWorkers: 3,
+        names: { ko: '밀밭 경작지', en: 'Wheat Field' },
+        descs: { ko: '봄 파종, 여름 생육, 가을에 곡물을 대량 수확합니다.', en: 'Sown in Spring, matures in Summer, harvested in Autumn.' }
       },
       WINDMILL: {
-        id: 'WINDMILL', name: 'Windmill', cat: 'farming',
-        w: 2, h: 2, cost: { wood: 12, planks: 6 }, maxWorkers: 2,
-        desc: 'Grinds harvested wheat grain into fine Flour.'
+        id: 'WINDMILL', cat: 'farming', w: 2, h: 2, cost: { wood: 12, planks: 6 }, maxWorkers: 2,
+        names: { ko: '풍차 제분소', en: 'Windmill' },
+        descs: { ko: '수확한 곡물을 빻아 고운 밀가루를 만듭니다.', en: 'Grinds harvested wheat grain into fine Flour.' }
       },
       COMMUNAL_BAKERY: {
-        id: 'COMMUNAL_BAKERY', name: 'Communal Bakery', cat: 'farming',
-        w: 2, h: 2, cost: { wood: 8, stone: 6 }, maxWorkers: 2,
-        desc: 'Bakes flour into delicious Bread using firewood.'
+        id: 'COMMUNAL_BAKERY', cat: 'farming', w: 2, h: 2, cost: { wood: 8, stone: 6 }, maxWorkers: 2,
+        names: { ko: '공동 제빵소', en: 'Communal Bakery' },
+        descs: { ko: '밀가루와 장작으로 갓 구운 빵을 대량 생산합니다.', en: 'Bakes flour into delicious Bread using firewood.' }
       },
       SHEEP_PASTURE: {
-        id: 'SHEEP_PASTURE', name: 'Sheep Pasture', cat: 'farming',
-        w: 3, h: 3, cost: { wood: 8 }, maxWorkers: 2,
-        desc: 'Raises sheep for Wool harvesting to make warm clothes.'
+        id: 'SHEEP_PASTURE', cat: 'farming', w: 3, h: 3, cost: { wood: 8 }, maxWorkers: 2,
+        names: { ko: '양 목장', en: 'Sheep Pasture' },
+        descs: { ko: '양을 길러 방한복의 원료인 양모를 깎습니다.', en: 'Raises sheep for Wool to make warm clothes.' }
       },
 
       WEAVER_WORKSHOP: {
-        id: 'WEAVER_WORKSHOP', name: 'Weaver Workshop', cat: 'crafting',
-        w: 2, h: 2, cost: { wood: 6, planks: 3 }, maxWorkers: 2,
-        desc: 'Spins sheep wool into warm Clothes to survive brutal winters.'
+        id: 'WEAVER_WORKSHOP', cat: 'crafting', w: 2, h: 2, cost: { wood: 6, planks: 3 }, maxWorkers: 2,
+        names: { ko: '직조 공방', en: 'Weaver Workshop' },
+        descs: { ko: '양모를 방적하여 혹한을 견딜 따뜻한 의복을 짓습니다.', en: 'Spins wool into warm Clothes to survive winters.' }
       },
       BLACKSMITH: {
-        id: 'BLACKSMITH', name: 'Blacksmith Forge', cat: 'crafting',
-        w: 2, h: 2, cost: { wood: 10, stone: 8 }, maxWorkers: 2,
-        desc: 'Forges iron ore and wood into Tools, Spears, and Hunting Bows.'
+        id: 'BLACKSMITH', cat: 'crafting', w: 2, h: 2, cost: { wood: 10, stone: 8 }, maxWorkers: 2,
+        names: { ko: '대장간', en: 'Blacksmith Forge' },
+        descs: { ko: '철광석과 원목으로 창, 활, 농기구를 주조합니다.', en: 'Forges iron ore and wood into Tools, Spears, and Bows.' }
       },
 
       MARKETPLACE: {
-        id: 'MARKETPLACE', name: 'Market Square', cat: 'civic',
-        w: 3, h: 3, cost: { wood: 15 },
-        desc: 'Peasants establish stalls to distribute food, fuel, and clothing.'
+        id: 'MARKETPLACE', cat: 'civic', w: 3, h: 3, cost: { wood: 15 },
+        names: { ko: '시장터', en: 'Market Square' },
+        descs: { ko: '노점이 들어서 주변 가구에 식량, 연료, 의복을 공급합니다.', en: 'Distributes food, fuel, and clothing to households.' }
       },
       WOODEN_CHURCH: {
-        id: 'WOODEN_CHURCH', name: 'Wooden Church', cat: 'civic',
-        w: 3, h: 3, cost: { wood: 20, planks: 10, stone: 8 }, maxWorkers: 1,
-        desc: 'Provides Sunday sermons and graveyard burial, blessing the fief.'
+        id: 'WOODEN_CHURCH', cat: 'civic', w: 3, h: 3, cost: { wood: 20, planks: 10, stone: 8 }, maxWorkers: 1,
+        names: { ko: '목조 교회', en: 'Wooden Church' },
+        descs: { ko: '주일 미사를 올리고 매장지를 마련하여 신앙심을 북돋웁니다.', en: 'Provides Sunday sermons and graveyard burial.' }
       },
       TAVERN: {
-        id: 'TAVERN', name: 'The Boar Tavern', cat: 'civic',
-        w: 2, h: 2, cost: { wood: 14, planks: 6 }, maxWorkers: 2,
-        desc: 'Serves ale to townsfolk, greatly bolstering peasant spirits.'
+        id: 'TAVERN', cat: 'civic', w: 2, h: 2, cost: { wood: 14, planks: 6 }, maxWorkers: 2,
+        names: { ko: '멧돼지 선술집', en: 'The Boar Tavern' },
+        descs: { ko: '맥주를 대접하여 백성들의 피로를 풀고 민심을 급증시킵니다.', en: 'Serves ale to townsfolk, greatly bolstering approval.' }
       },
 
       PALISADE: {
-        id: 'PALISADE', name: 'Wooden Palisade', cat: 'military',
-        w: 1, h: 1, cost: { wood: 2 }, hp: 200,
-        desc: 'Sturdy wooden stakes that block invader movement.'
+        id: 'PALISADE', cat: 'military', w: 1, h: 1, cost: { wood: 2 }, hp: 200,
+        names: { ko: '목책 성벽', en: 'Wooden Palisade' },
+        descs: { ko: '침략자의 경로를 차단하는 튼튼한 나무 말뚝 방책.', en: 'Sturdy wooden stakes that block invader movement.' }
       },
       STONE_WALL: {
-        id: 'STONE_WALL', name: 'Stone Wall', cat: 'military',
-        w: 1, h: 1, cost: { stone: 3 }, hp: 600,
-        desc: 'Heavy masonry ramparts to thwart battering rams and raiders.'
+        id: 'STONE_WALL', cat: 'military', w: 1, h: 1, cost: { stone: 3 }, hp: 600,
+        names: { ko: '석조 성벽', en: 'Stone Wall' },
+        descs: { ko: '적의 공성을 막아내는 단단한 석재 방벽.', en: 'Heavy masonry ramparts to thwart raiders.' }
       },
       WATCHTOWER: {
-        id: 'WATCHTOWER', name: 'Watchtower', cat: 'military',
-        w: 1, h: 1, cost: { wood: 10, stone: 6 }, maxWorkers: 1, hp: 450,
-        desc: 'Garrison archers for +100% range and elevated defense.'
+        id: 'WATCHTOWER', cat: 'military', w: 1, h: 1, cost: { wood: 10, stone: 6 }, maxWorkers: 1, hp: 450,
+        names: { ko: '방어 망루', en: 'Watchtower' },
+        descs: { ko: '궁수 배치 시 사거리 1.8배, 공격력 1.5배 고지대 특권 부여.', en: 'Garrison archers for +80% range and elevated defense.' }
       },
       GATEHOUSE: {
-        id: 'GATEHOUSE', name: 'Gatehouse', cat: 'military',
-        w: 2, h: 1, cost: { wood: 12, stone: 10 }, hp: 800,
-        desc: 'Permits friendly villagers while holding off barbarian hordes.'
+        id: 'GATEHOUSE', cat: 'military', w: 2, h: 1, cost: { wood: 12, stone: 10 }, hp: 800,
+        names: { ko: '성문', en: 'Gatehouse' },
+        descs: { ko: '아군 백성은 통과시키고 적의 침입을 저지하는 요새 관문.', en: 'Permits villagers while holding off barbarian hordes.' }
       }
     };
+
+    function getBuildingName(bDef) {
+      if (!bDef) return '';
+      return (bDef.names && bDef.names[currentLang]) || bDef.name || bDef.id;
+    }
+
+    function getBuildingDesc(bDef) {
+      if (!bDef) return '';
+      return (bDef.descs && bDef.descs[currentLang]) || bDef.desc || '';
+    }
 
     class GameState {
       constructor() {
@@ -1140,10 +1420,16 @@
       }
 
       initVillagers(count) {
-        const names = [
+        const namesKo = [
+          '알도우스', '베르트람', '세드릭', '에디스', '자일스', '고드프리', '그웬', '힐다',
+          '이졸데', '오스릭', '라눌프', '로웨나', '테오발트', '위스탄', '베아트리스', '엠마'
+        ];
+        const namesEn = [
           'Aldous', 'Bertram', 'Cedric', 'Edith', 'Giles', 'Godfrey', 'Gwen', 'Hilda',
           'Isolde', 'Osric', 'Rannulf', 'Rowena', 'Theobald', 'Wystan', 'Beatrice', 'Emma'
         ];
+        const names = currentLang === 'ko' ? namesKo : namesEn;
+
         for (let i = 0; i < count; i++) {
           this.villagers.push({
             id: 'v_' + i + '_' + Math.random().toString(36).substr(2, 4),
@@ -1153,7 +1439,7 @@
             health: 100,
             warmth: 100,
             hunger: 100,
-            job: 'Laborer',
+            job: currentLang === 'ko' ? '일반 노동자' : 'Laborer',
             workplaceId: null,
             homeId: null,
             isMilitia: false,
@@ -1540,7 +1826,7 @@
         ctx.font = `bold ${Math.max(9, Math.floor(10 * z))}px sans-serif`;
         ctx.fillStyle = '#f4e8c1';
         ctx.textAlign = 'center';
-        ctx.fillText(bDef.name, p.x, p.y + 12 * z);
+        ctx.fillText(getBuildingName(bDef), p.x, p.y + 12 * z);
 
         ctx.restore();
       }
@@ -1757,6 +2043,7 @@
         this.selectedBuilding = null;
         this.selectedUnit = null;
         this.isDemolishMode = false;
+        this.activeCategory = null;
 
         this.isDragging = false;
         this.dragStart = { x: 0, y: 0 };
@@ -1764,6 +2051,7 @@
 
         this.lastTime = performance.now();
 
+        this.applyLanguage();
         this.initUI();
         this.initEvents();
         this.initTooltips();
@@ -1772,7 +2060,77 @@
         requestAnimationFrame((t) => this.loop(t));
       }
 
+      applyLanguage() {
+        // Top HUD texts
+        document.getElementById('txt-fief-title').textContent = t('fief_title');
+        document.getElementById('btn-lang-toggle').textContent = t('lang_btn');
+        document.getElementById('lbl-idle-txt').textContent = t('idle_txt');
+        document.getElementById('lbl-food-unit').textContent = t('food_unit');
+        document.getElementById('txt-tax-btn').textContent = t('btn_tax');
+        document.getElementById('txt-audio-btn').textContent = sound.enabled ? t('btn_audio_on') : t('btn_audio_muted');
+        document.getElementById('txt-save-btn').textContent = t('btn_save');
+        document.getElementById('txt-reset-btn').textContent = t('btn_reset');
+        document.getElementById('txt-guide-btn').textContent = t('btn_guide');
+
+        // Navigation Tabs
+        document.getElementById('tab-infra-txt').textContent = t('tab_infra');
+        document.getElementById('tab-res-txt').textContent = t('tab_res');
+        document.getElementById('tab-farm-txt').textContent = t('tab_farm');
+        document.getElementById('tab-craft-txt').textContent = t('tab_craft');
+        document.getElementById('tab-civic-txt').textContent = t('tab_civic');
+        document.getElementById('tab-mil-txt').textContent = t('tab_mil');
+        document.getElementById('tab-demo-txt').textContent = t('tab_demo');
+
+        // Modals
+        document.getElementById('tax-modal-title').textContent = t('tax_title');
+        document.getElementById('tax-modal-desc').textContent = t('tax_desc');
+        document.getElementById('tax-slider-lbl').textContent = t('tax_rate_lbl');
+        document.getElementById('tax-est-gold-lbl').textContent = t('tax_est_gold_lbl');
+        document.getElementById('tax-est-app-lbl').textContent = t('tax_est_app_lbl');
+        document.getElementById('tax-modal-btn').textContent = t('tax_confirm_btn');
+
+        document.getElementById('help-modal-title').textContent = t('guide_title');
+        document.getElementById('help-modal-btn').textContent = t('guide_btn_close');
+        document.getElementById('help-modal-content').innerHTML = `
+          <p>${t('guide_p1')}</p>
+          <p>${t('guide_p2')}</p>
+          <p>${t('guide_p3')}</p>
+          <p>${t('guide_p4')}</p>
+          <p>${t('guide_p5')}</p>
+        `;
+
+        document.getElementById('txt-chronicle-header').textContent = t('chronicle_header');
+        document.getElementById('txt-chronicle-sub').textContent = t('chronicle_sub');
+
+        this.updateSeasonBadge();
+        this.updateTaxEstimates();
+
+        // Refresh tray if opened
+        if (this.activeCategory) {
+          this.populateBuildTray(this.activeCategory);
+        }
+
+        // Refresh inspector if opened
+        if (this.selectedBuilding) {
+          this.showBuildingInspector(this.selectedBuilding);
+        } else if (this.selectedUnit) {
+          this.showUnitInspector(this.selectedUnit);
+        }
+      }
+
+      toggleLanguage() {
+        currentLang = currentLang === 'ko' ? 'en' : 'ko';
+        localStorage.setItem('ashborne_lang', currentLang);
+        this.applyLanguage();
+        this.logChronicle(currentLang === 'ko' ? '언어가 한국어로 설정되었습니다.' : 'Language set to English.', 'event');
+      }
+
       initUI() {
+        // Language Toggle Button
+        document.getElementById('btn-lang-toggle').addEventListener('click', () => {
+          this.toggleLanguage();
+        });
+
         const tabBtns = document.querySelectorAll('.build-tab-btn[data-category]');
         const tray = document.getElementById('build-tray');
 
@@ -1782,11 +2140,13 @@
             if (btn.classList.contains('active')) {
               btn.classList.remove('active');
               tray.classList.remove('show');
+              this.activeCategory = null;
             } else {
               tabBtns.forEach(b => b.classList.remove('active'));
               document.getElementById('btn-demolish-mode').classList.remove('active');
               this.isDemolishMode = false;
               btn.classList.add('active');
+              this.activeCategory = cat;
               this.populateBuildTray(cat);
               tray.classList.add('show');
             }
@@ -1797,6 +2157,7 @@
         demolishBtn.addEventListener('click', () => {
           this.isDemolishMode = !this.isDemolishMode;
           this.activePlacement = null;
+          this.activeCategory = null;
           tabBtns.forEach(b => b.classList.remove('active'));
           tray.classList.remove('show');
           demolishBtn.classList.toggle('active', this.isDemolishMode);
@@ -1822,9 +2183,7 @@
           this.state.taxRate = val;
           document.getElementById('tax-slider-val').textContent = val + '%';
           document.getElementById('btn-tax-val').textContent = val + '%';
-          const income = Math.floor(this.state.villagers.length * (val / 10));
-          document.getElementById('tax-est-gold').textContent = `+${income} Gold / mo`;
-          document.getElementById('tax-est-approval').textContent = `-${Math.floor(val * 0.7)}% / mo`;
+          this.updateTaxEstimates();
         });
         document.getElementById('btn-tax-modal').addEventListener('click', () => {
           document.getElementById('modal-tax').classList.add('show');
@@ -1838,20 +2197,20 @@
         audioBtn.addEventListener('click', () => {
           sound.init();
           const isOn = sound.toggleSound();
-          audioBtn.textContent = isOn ? '🔊 Audio: On' : '🔈 Audio: Muted';
+          audioBtn.innerHTML = `🔊 <span id="txt-audio-btn">${isOn ? t('btn_audio_on') : t('btn_audio_muted')}</span>`;
         });
 
         document.getElementById('btn-save-game').addEventListener('click', () => {
           this.saveGame();
-          this.logChronicle('Fief state recorded into village archives (Saved).', 'event');
+          this.logChronicle(t('log_save'), 'event');
         });
 
         document.getElementById('btn-new-game').addEventListener('click', () => {
-          if (confirm('Start a new game? All current fief progress will be reset.')) {
+          if (confirm(t('new_game_confirm'))) {
             localStorage.removeItem('ashborne_save');
             this.state.reset();
             this.updateSeasonBadge();
-            this.logChronicle('Lord Valedor establishes a brand new settlement.', 'event');
+            this.logChronicle(t('log_init_1'), 'event');
           }
         });
 
@@ -1860,6 +2219,14 @@
           this.selectedBuilding = null;
           this.selectedUnit = null;
         });
+      }
+
+      updateTaxEstimates() {
+        const val = this.state.taxRate;
+        const income = Math.floor(this.state.villagers.length * (val / 10));
+        const appLoss = Math.floor(val * 0.7);
+        document.getElementById('tax-est-gold').textContent = t('gold_per_mo', { val: income });
+        document.getElementById('tax-est-approval').textContent = t('app_per_mo', { val: appLoss });
       }
 
       initTooltips() {
@@ -1874,22 +2241,22 @@
 
         document.getElementById('hud-food').addEventListener('mouseenter', (e) => {
           const r = this.state.resources;
-          showTip(e, `<strong>Food Stockpile</strong><br>
-            🍞 Bread: ${Math.floor(r.bread)}<br>
-            🥩 Meat: ${Math.floor(r.meat)}<br>
-            🍓 Berries: ${Math.floor(r.berries)}<br>
-            🥕 Vegetables: ${Math.floor(r.vegetables)}<br>
-            🥚 Eggs: ${Math.floor(r.eggs)}<br>
-            <em>Diet diversity directly boosts peasant approval!</em>`);
+          showTip(e, `<strong>${t('tip_food_title')}</strong><br>
+            🍞 ${t('tip_bread')}: ${Math.floor(r.bread)}<br>
+            🥩 ${t('tip_meat')}: ${Math.floor(r.meat)}<br>
+            🍓 ${t('tip_berries')}: ${Math.floor(r.berries)}<br>
+            🥕 ${t('tip_vegetables')}: ${Math.floor(r.vegetables)}<br>
+            🥚 ${t('tip_eggs')}: ${Math.floor(r.eggs)}<br>
+            <em>${t('tip_food_desc')}</em>`);
         });
         document.getElementById('hud-food').addEventListener('mouseleave', hideTip);
 
         document.getElementById('hud-approval').addEventListener('mouseenter', (e) => {
           const app = Math.floor(this.state.approval);
-          showTip(e, `<strong>Peasant Approval: ${app}%</strong><br>
-            &gt;= 55%: Weary migrants seek shelter in your fief<br>
-            &lt; 50%: Grumbling and slow production<br>
-            &lt; 25%: High risk of riot and abandonment`);
+          showTip(e, `<strong>${t('tip_approval_title')}: ${app}%</strong><br>
+            ${t('tip_app_high')}<br>
+            ${t('tip_app_mid')}<br>
+            ${t('tip_app_low')}`);
         });
         document.getElementById('hud-approval').addEventListener('mouseleave', hideTip);
 
@@ -1897,10 +2264,10 @@
           const houses = this.state.buildings.filter(b => b.type === 'BURGAGE_PLOT').length;
           const cap = houses * 4;
           const homeless = Math.max(0, this.state.villagers.length - cap);
-          showTip(e, `<strong>Demographics</strong><br>
-            Population: ${this.state.villagers.length}<br>
-            Shelter Capacity: ${cap}<br>
-            Homeless: ${homeless > 0 ? `<span style="color:#ff6b6b">${homeless}</span>` : '0'}`);
+          showTip(e, `<strong>${t('tip_demo_title')}</strong><br>
+            ${t('tip_total_pop')}: ${this.state.villagers.length}<br>
+            ${t('tip_housing_cap')}: ${cap}<br>
+            ${t('tip_homeless')}: ${homeless > 0 ? `<span style="color:#ff6b6b">${homeless}</span>` : '0'}`);
         });
         document.getElementById('hud-pop').addEventListener('mouseleave', hideTip);
       }
@@ -1914,10 +2281,10 @@
           militiaBox.className = 'build-card';
           militiaBox.style.width = '240px';
           militiaBox.innerHTML = `
-            <div class="build-card-title">🛡️ Muster Spear Militia</div>
-            <div class="build-card-cost">Cost: 1 Spear, 1 Peasant</div>
-            <div class="build-card-desc">Equip an able-bodied laborer with a spear to defend against bandits.</div>
-            <button class="action-btn" id="btn-raise-spear" style="margin-top:6px;">Draft Spearmen (+1)</button>
+            <div class="build-card-title">${t('btn_muster_spear_card')}</div>
+            <div class="build-card-cost">${t('btn_muster_spear_cost')}</div>
+            <div class="build-card-desc">${t('btn_muster_spear_desc')}</div>
+            <button class="action-btn" id="btn-raise-spear" style="margin-top:6px;">${t('btn_muster_spear_btn')}</button>
           `;
           tray.appendChild(militiaBox);
 
@@ -1925,10 +2292,10 @@
           archerBox.className = 'build-card';
           archerBox.style.width = '240px';
           archerBox.innerHTML = `
-            <div class="build-card-title">🏹 Muster Archer Militia</div>
-            <div class="build-card-cost">Cost: 1 Bow, 1 Peasant</div>
-            <div class="build-card-desc">Draft archers for lethal ranged attacks. Extreme advantage atop towers.</div>
-            <button class="action-btn" id="btn-raise-bow" style="margin-top:6px;">Draft Archers (+1)</button>
+            <div class="build-card-title">${t('btn_muster_bow_card')}</div>
+            <div class="build-card-cost">${t('btn_muster_bow_cost')}</div>
+            <div class="build-card-desc">${t('btn_muster_bow_desc')}</div>
+            <button class="action-btn" id="btn-raise-bow" style="margin-top:6px;">${t('btn_muster_bow_btn')}</button>
           `;
           tray.appendChild(archerBox);
 
@@ -1946,9 +2313,9 @@
           const costStr = Object.entries(bDef.cost).map(([res, amt]) => `${amt} ${res}`).join(', ');
 
           card.innerHTML = `
-            <div class="build-card-title">${bDef.name}</div>
-            <div class="build-card-cost">${costStr || 'Free'}</div>
-            <div class="build-card-desc">${bDef.desc}</div>
+            <div class="build-card-title">${getBuildingName(bDef)}</div>
+            <div class="build-card-cost">${costStr || (currentLang === 'ko' ? '무료' : 'Free')}</div>
+            <div class="build-card-desc">${getBuildingDesc(bDef)}</div>
           `;
           card.addEventListener('click', () => {
             sound.init();
@@ -1972,7 +2339,6 @@
             this.camStart = { x: this.state.camera.x, y: this.state.camera.y };
           } else if (e.button === 2) {
             e.preventDefault();
-            // If in placement mode, right click cancels it
             if (this.activePlacement) {
               this.activePlacement = null;
               document.querySelectorAll('.build-card').forEach(item => item.classList.remove('selected'));
@@ -2031,6 +2397,7 @@
           if (e.key === 'Escape') {
             this.activePlacement = null;
             this.isDemolishMode = false;
+            this.activeCategory = null;
             document.querySelectorAll('.build-card').forEach(item => item.classList.remove('selected'));
             document.getElementById('btn-demolish-mode').classList.remove('active');
             document.getElementById('build-tray').classList.remove('show');
@@ -2105,7 +2472,7 @@
             this.selectedUnit.targetEnemy = targetEnemy;
             this.selectedUnit.targetX = null;
             this.selectedUnit.targetY = null;
-            this.logChronicle(`${this.selectedUnit.type.toUpperCase()} engaging enemy raider!`, 'war');
+            this.logChronicle(`${this.selectedUnit.type.toUpperCase()} -> Enemy Engage!`, 'war');
           } else {
             this.selectedUnit.targetX = targetGrid.x + 0.5;
             this.selectedUnit.targetY = targetGrid.y + 0.5;
@@ -2121,16 +2488,16 @@
             const tx = gx + dx;
             const ty = gy + dy;
             if (tx < 0 || tx >= MAP_SIZE || ty < 0 || ty >= MAP_SIZE) {
-              this.logChronicle('Cannot build outside fief boundaries!', 'event');
+              this.logChronicle(t('log_no_bounds'), 'event');
               return;
             }
             const tile = this.state.tiles[ty][tx];
             if (tile.terrain === TERRAIN.WATER) {
-              this.logChronicle('Cannot build atop riverbed!', 'event');
+              this.logChronicle(t('log_water_obstruct'), 'event');
               return;
             }
             if (tile.building) {
-              this.logChronicle('Ground is obstructed by existing structure.', 'event');
+              this.logChronicle(t('log_space_obstruct'), 'event');
               return;
             }
           }
@@ -2138,7 +2505,7 @@
 
         for (const [res, amt] of Object.entries(bDef.cost)) {
           if ((this.state.resources[res] || 0) < amt) {
-            this.logChronicle(`Insufficient ${res} (Required: ${amt})!`, 'event');
+            this.logChronicle(t('log_insufficient_res', { res: res, amt: amt }), 'event');
             return;
           }
         }
@@ -2178,7 +2545,7 @@
 
         this.state.buildings.push(building);
         sound.playHammer();
-        this.logChronicle(`Constructed ${bDef.name} at [${gx}, ${gy}].`, 'event');
+        this.logChronicle(t('log_built', { name: getBuildingName(bDef), x: gx, y: gy }), 'event');
       }
 
       demolishBuilding(building) {
@@ -2188,7 +2555,7 @@
           }
         }
         building.assignedWorkers.forEach(w => {
-          w.job = 'Laborer';
+          w.job = currentLang === 'ko' ? '일반 노동자' : 'Laborer';
           w.workplaceId = null;
         });
 
@@ -2205,7 +2572,7 @@
           document.getElementById('inspector-panel').classList.remove('show');
         }
         sound.playHammer();
-        this.logChronicle(`Demolished ${bDef.name}. Recovered 50% materials.`, 'event');
+        this.logChronicle(t('log_demolished', { name: getBuildingName(bDef) }), 'event');
       }
 
       showBuildingInspector(b) {
@@ -2214,17 +2581,17 @@
         const body = document.getElementById('insp-body');
         const bDef = BUILDINGS[b.type];
 
-        title.textContent = bDef.name;
+        title.textContent = getBuildingName(bDef);
         body.innerHTML = '';
 
         const statBox = document.createElement('div');
         statBox.innerHTML = `
           <div class="stat-row">
-            <span>Integrity:</span>
+            <span>${t('insp_integrity')}</span>
             <span>${b.hp} / ${b.maxHp}</span>
           </div>
           <div class="stat-row">
-            <span>Location:</span>
+            <span>${t('insp_location')}</span>
             <span>X:${b.x}, Y:${b.y} (${b.w}x${b.h})</span>
           </div>
         `;
@@ -2235,12 +2602,12 @@
           workerBox.style.marginTop = '8px';
           workerBox.innerHTML = `
             <div class="stat-row">
-              <span>Assigned Artisans:</span>
+              <span>${t('insp_workers')}</span>
               <span>${b.assignedWorkers.length} / ${b.maxWorkers}</span>
             </div>
             <div style="display:flex; gap:6px; margin-top:6px;">
-              <button class="action-btn" id="btn-add-worker" style="flex:1;">+ Assign Worker</button>
-              <button class="action-btn" id="btn-rem-worker" style="flex:1;">- Remove</button>
+              <button class="action-btn" id="btn-add-worker" style="flex:1;">${t('insp_btn_add_worker')}</button>
+              <button class="action-btn" id="btn-rem-worker" style="flex:1;">${t('insp_btn_rem_worker')}</button>
             </div>
           `;
           body.appendChild(workerBox);
@@ -2259,17 +2626,19 @@
           plotBox.style.borderTop = '1px solid var(--border-dark)';
           plotBox.style.paddingTop = '8px';
 
+          const curBackyard = b.backyard ? b.backyard.toUpperCase() : t('insp_backyard_none');
+
           plotBox.innerHTML = `
             <div style="font-size:12px; font-weight:bold; color:var(--accent-gold); margin-bottom:4px;">
-              🏡 Backyard Extension: ${b.backyard ? b.backyard.toUpperCase() : 'None (Fallow)'}
+              ${t('insp_backyard_title')} ${curBackyard}
             </div>
             <p style="font-size:11px; color:#a89678; line-height:1.3; margin-bottom:8px;">
-              Expand the rear plot to cultivate food continuously throughout the year.
+              ${t('insp_backyard_desc')}
             </p>
             <div style="display:flex; flex-direction:column; gap:4px;">
-              <button class="action-btn" id="btn-ext-veg">🌱 Vegetable Patch (5 Planks)</button>
-              <button class="action-btn" id="btn-ext-chk">🐔 Chicken Coop (4 Planks)</button>
-              <button class="action-btn" id="btn-ext-goat">🐐 Goat Shed (6 Planks)</button>
+              <button class="action-btn" id="btn-ext-veg">${t('insp_btn_veg')}</button>
+              <button class="action-btn" id="btn-ext-chk">${t('insp_btn_chk')}</button>
+              <button class="action-btn" id="btn-ext-goat">${t('insp_btn_goat')}</button>
             </div>
           `;
           body.appendChild(plotBox);
@@ -2289,12 +2658,12 @@
           smithBox.style.marginTop = '10px';
           smithBox.innerHTML = `
             <div style="font-size:12px; font-weight:bold; color:var(--accent-gold); margin-bottom:4px;">
-              ⚒️ Production Focus: ${this.state.blacksmithMode.toUpperCase()}
+              ${t('insp_smith_title')} ${this.state.blacksmithMode.toUpperCase()}
             </div>
             <div style="display:flex; gap:4px;">
-              <button class="action-btn" style="flex:1;" id="btn-smith-spear">Spears</button>
-              <button class="action-btn" style="flex:1;" id="btn-smith-bow">Bows</button>
-              <button class="action-btn" style="flex:1;" id="btn-smith-tool">Tools</button>
+              <button class="action-btn" style="flex:1;" id="btn-smith-spear">${t('insp_smith_spear')}</button>
+              <button class="action-btn" style="flex:1;" id="btn-smith-bow">${t('insp_smith_bow')}</button>
+              <button class="action-btn" style="flex:1;" id="btn-smith-tool">${t('insp_smith_tool')}</button>
             </div>
           `;
           body.appendChild(smithBox);
@@ -2308,7 +2677,7 @@
         const demoBtn = document.createElement('button');
         demoBtn.className = 'action-btn danger';
         demoBtn.style.marginTop = '12px';
-        demoBtn.textContent = '🔨 Demolish Building';
+        demoBtn.textContent = t('insp_btn_demolish');
         demoBtn.onclick = () => this.demolishBuilding(b);
         body.appendChild(demoBtn);
 
@@ -2317,24 +2686,24 @@
 
       upgradeBackyard(b, type, plankCost) {
         if (this.state.resources.planks < plankCost) {
-          this.logChronicle(`Need ${plankCost} Planks to build backyard ${type}!`, 'event');
+          this.logChronicle(t('log_backyard_need_plank', { cost: plankCost, type: type }), 'event');
           return;
         }
         this.state.resources.planks -= plankCost;
         b.backyard = type;
         sound.playHammer();
-        this.logChronicle(`Established ${type} backyard extension on household.`, 'event');
+        this.logChronicle(t('log_backyard_done', { type: type }), 'event');
         this.showBuildingInspector(b);
       }
 
       assignWorkerToBuilding(b) {
         if (b.assignedWorkers.length >= b.maxWorkers) return;
-        const freeWorker = this.state.villagers.find(v => v.job === 'Laborer' && !v.isMilitia);
+        const freeWorker = this.state.villagers.find(v => (v.job === 'Laborer' || v.job === '일반 노동자') && !v.isMilitia);
         if (!freeWorker) {
-          this.logChronicle('No idle adult laborers available in the fief!', 'event');
+          this.logChronicle(t('log_no_free_worker'), 'event');
           return;
         }
-        freeWorker.job = BUILDINGS[b.type].name;
+        freeWorker.job = getBuildingName(BUILDINGS[b.type]);
         freeWorker.workplaceId = b.id;
         b.assignedWorkers.push(freeWorker);
         this.showBuildingInspector(b);
@@ -2344,7 +2713,7 @@
       unassignWorkerFromBuilding(b) {
         if (b.assignedWorkers.length === 0) return;
         const worker = b.assignedWorkers.pop();
-        worker.job = 'Laborer';
+        worker.job = currentLang === 'ko' ? '일반 노동자' : 'Laborer';
         worker.workplaceId = null;
         this.showBuildingInspector(b);
       }
@@ -2354,29 +2723,29 @@
         const title = document.getElementById('insp-title');
         const body = document.getElementById('insp-body');
 
-        title.textContent = unit.isEnemy ? '⚔️ Raider Invader' : `🛡️ ${unit.type.toUpperCase()} REGIMENT`;
+        title.textContent = unit.isEnemy ? t('unit_bandit') : `🛡️ ${unit.type.toUpperCase()}`;
         body.innerHTML = `
           <div class="stat-row">
-            <span>Combat Readiness:</span>
+            <span>${t('unit_readiness')}</span>
             <span>HP: ${unit.hp} / ${unit.maxHp}</span>
           </div>
           <div class="stat-row">
-            <span>Damage:</span>
-            <span>${unit.attack} Atk</span>
+            <span>${t('unit_attack')}</span>
+            <span>${unit.attack}</span>
           </div>
           <div class="stat-row">
-            <span>Range:</span>
-            <span>${unit.range} Tiles</span>
+            <span>${t('unit_range')}</span>
+            <span>${unit.range} ${t('unit_tiles')}</span>
           </div>
           <p style="font-size:11px; color:#d8c39d; margin-top:8px; line-height:1.4;">
-            ${unit.isEnemy ? 'Ravage and burn orders. Destroying local storage and households!' : 'Right-click anywhere on the map to order movement or target enemy forces.'}
+            ${unit.isEnemy ? t('unit_order_desc_enemy') : t('unit_order_desc_friend')}
           </p>
         `;
         if (!unit.isEnemy) {
           const disbandBtn = document.createElement('button');
           disbandBtn.className = 'action-btn danger';
           disbandBtn.style.marginTop = '10px';
-          disbandBtn.textContent = 'Demobilize to Civilian';
+          disbandBtn.textContent = t('unit_btn_disband');
           disbandBtn.onclick = () => {
             this.demobilizeUnit(unit);
             panel.classList.remove('show');
@@ -2389,19 +2758,19 @@
       musterMilitia(type) {
         const reqWeapon = type === 'spearmen' ? 'spears' : 'bows';
         if ((this.state.resources[reqWeapon] || 0) < 1) {
-          this.logChronicle(`No forged ${reqWeapon} in the armoury! Produce at blacksmith.`, 'war');
+          this.logChronicle(t('log_no_weapon', { weapon: reqWeapon }), 'war');
           return;
         }
 
         const candidate = this.state.villagers.find(v => !v.isMilitia && v.age >= 16);
         if (!candidate) {
-          this.logChronicle('No able-bodied citizens to conscript!', 'war');
+          this.logChronicle(t('log_no_citizen_draft'), 'war');
           return;
         }
 
         this.state.resources[reqWeapon] -= 1;
         candidate.isMilitia = true;
-        candidate.job = 'Militia ' + type;
+        candidate.job = (currentLang === 'ko' ? '민병대 ' : 'Militia ') + type;
 
         const militiaUnit = {
           id: 'u_' + Date.now() + Math.random(),
@@ -2423,18 +2792,18 @@
 
         this.state.units.push(militiaUnit);
         sound.playWarhorn();
-        this.logChronicle(`Muster banner raised: ${type.toUpperCase()} rallied to arms!`, 'war');
+        this.logChronicle(t('log_militia_drafted', { type: type.toUpperCase() }), 'war');
       }
 
       demobilizeUnit(unit) {
         if (unit.villagerRef) {
           unit.villagerRef.isMilitia = false;
-          unit.villagerRef.job = 'Laborer';
+          unit.villagerRef.job = currentLang === 'ko' ? '일반 노동자' : 'Laborer';
           const refundWeapon = unit.type === 'spearmen' ? 'spears' : 'bows';
           this.state.resources[refundWeapon] = (this.state.resources[refundWeapon] || 0) + 1;
         }
         this.state.units = this.state.units.filter(u => u !== unit);
-        this.logChronicle(`${unit.type.toUpperCase()} unit demobilized back to fields.`, 'event');
+        this.logChronicle(t('log_militia_disbanded', { type: unit.type.toUpperCase() }), 'event');
       }
 
       update(dt) {
@@ -2448,10 +2817,10 @@
           this.state.seasonIndex = (this.state.seasonIndex + 1) % 4;
           if (this.state.seasonIndex === 0) {
             this.state.year += 1;
-            this.logChronicle(`Year ${this.state.year} dawns across the fiefdom.`, 'event');
+            this.logChronicle(t('log_year_dawn', { year: this.state.year }), 'event');
           }
-          const curSeason = SEASONS[this.state.seasonIndex];
-          this.logChronicle(`The season has turned to ${curSeason}.`, 'event');
+          const curSeasonKey = 'season_' + SEASONS[this.state.seasonIndex].toLowerCase();
+          this.logChronicle(t('log_season_turned', { season: t(curSeasonKey) }), 'event');
           sound.playPluck(587.33, 1.0, 0.15);
           this.updateSeasonBadge();
         }
@@ -2517,7 +2886,7 @@
         for (let i = this.state.villagers.length - 1; i >= 0; i--) {
           const v = this.state.villagers[i];
           if (v.health <= 0) {
-            this.logChronicle(`${v.name} perished from exposure or hunger!`, 'war');
+            this.logChronicle(t('log_perished', { name: v.name }), 'war');
             this.state.villagers.splice(i, 1);
             this.state.approval = Math.max(0, this.state.approval - 5);
           }
@@ -2601,7 +2970,7 @@
 
         if (this.state.threatTimer <= 30 && this.state.threatTimer > 0) {
           alertEl.classList.add('show');
-          alertMsg.textContent = `BANDITS APPROACHING: Warband arriving in ${Math.ceil(this.state.threatTimer)}s! Muster militia!`;
+          alertMsg.textContent = t('threat_alert', { time: Math.ceil(this.state.threatTimer) });
         } else if (this.state.threatTimer <= 0 && !this.state.threatActive) {
           this.spawnInvasion();
           alertEl.classList.remove('show');
@@ -2699,10 +3068,10 @@
           const unit = this.state.units[i];
           if (unit.hp <= 0) {
             if (unit.isEnemy) {
-              this.logChronicle('Raider vanquished by defenders!', 'war');
+              this.logChronicle(t('log_bandit_slain'), 'war');
               this.state.resources.gold += 5;
             } else {
-              this.logChronicle(`Heroic ${unit.type.toUpperCase()} fallen in battle!`, 'war');
+              this.logChronicle(t('log_hero_fallen', { type: unit.type.toUpperCase() }), 'war');
               if (unit.villagerRef) {
                 unit.villagerRef.health = 0;
               }
@@ -2718,7 +3087,7 @@
             this.state.threatWave += 1;
             this.state.threatTimer = 220;
             this.state.approval = Math.min(100, this.state.approval + 15);
-            this.logChronicle(`VICTORY! The fief repelled the invaders. Peasant approval surged!`, 'birth');
+            this.logChronicle(t('log_victory'), 'birth');
             sound.playWarhorn();
           }
         }
@@ -2752,7 +3121,7 @@
           });
         }
         sound.playWarhorn();
-        this.logChronicle(`ALARM! ${spawnCount} Bandits have invaded from the wilderness!`, 'war');
+        this.logChronicle(t('log_bandit_alarm', { count: spawnCount }), 'war');
       }
 
       fireArrow(source, target, dmg) {
@@ -2809,7 +3178,7 @@
         if (this.state.approval >= 55 && this.state.villagers.length < totalCapacity) {
           const migrants = 1 + Math.floor(Math.random() * 2);
           this.state.initVillagers(migrants);
-          this.logChronicle(`${migrants} weary peasant migrants settled in Ashborne.`, 'birth');
+          this.logChronicle(t('log_migrants', { count: migrants }), 'birth');
         }
       }
 
@@ -2843,7 +3212,7 @@
         document.getElementById('val-food-days').textContent = daysLeft;
 
         const maxPop = this.state.buildings.filter(b => b.type === 'BURGAGE_PLOT').length * 4;
-        const idleWorkers = this.state.villagers.filter(v => v.job === 'Laborer' && !v.isMilitia).length;
+        const idleWorkers = this.state.villagers.filter(v => (v.job === 'Laborer' || v.job === '일반 노동자') && !v.isMilitia).length;
         document.getElementById('val-pop').textContent = `${this.state.villagers.length}/${maxPop}`;
         document.getElementById('val-idle').textContent = idleWorkers;
 
@@ -2851,13 +3220,13 @@
         appEl.textContent = `${Math.floor(this.state.approval)}%`;
         if (this.state.approval >= 75) {
           appEl.className = 'val val-approval';
-          document.getElementById('lbl-approval-status').textContent = 'Euphoric';
+          document.getElementById('lbl-approval-status').textContent = t('approval_euphoric');
         } else if (this.state.approval >= 50) {
           appEl.className = 'val val-approval';
-          document.getElementById('lbl-approval-status').textContent = 'Content';
+          document.getElementById('lbl-approval-status').textContent = t('approval_content');
         } else {
           appEl.className = 'val val-danger';
-          document.getElementById('lbl-approval-status').textContent = 'Discontent';
+          document.getElementById('lbl-approval-status').textContent = t('approval_discontent');
         }
 
         const militiaCount = this.state.units.filter(u => !u.isEnemy).length;
@@ -2866,17 +3235,18 @@
 
       updateSeasonBadge() {
         const season = SEASONS[this.state.seasonIndex];
+        const curSeasonKey = 'season_' + season.toLowerCase();
         const badge = document.getElementById('season-badge');
         badge.className = `season-badge season-${season.toLowerCase()}`;
         document.getElementById('season-icon').textContent = SEASON_ICONS[season];
-        document.getElementById('season-text').textContent = `${season}, Year ${this.state.year}`;
+        document.getElementById('season-text').textContent = t('season_format', { season: t(curSeasonKey), year: this.state.year });
       }
 
       logChronicle(msg, type = 'event') {
         const container = document.getElementById('chronicle-logs');
         const item = document.createElement('div');
         item.className = `log-item log-${type}`;
-        item.textContent = `[Y${this.state.year}] ${msg}`;
+        item.textContent = `[${this.state.year}Y] ${msg}`;
         container.appendChild(item);
         container.scrollTop = container.scrollHeight;
       }
@@ -2967,7 +3337,7 @@
           }
 
           this.updateSeasonBadge();
-          this.logChronicle('Loaded previously saved Ashborne fief chronicle.', 'event');
+          this.logChronicle(t('log_loaded'), 'event');
         } catch (e) {
           console.error('Load game failed:', e);
         }
