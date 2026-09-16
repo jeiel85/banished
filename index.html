@@ -1,0 +1,2998 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ashborne: Feudal Manor (애시본: 봉건 영지 시뮬레이터)</title>
+  <style>
+    :root {
+      --bg-dark: #12100e;
+      --parchment: #f4e8c1;
+      --parchment-dark: #d8c39d;
+      --ink: #2b1f14;
+      --ink-light: #57412e;
+      --accent-gold: #c9933b;
+      --accent-gold-light: #f5d77f;
+      --accent-red: #8f2323;
+      --accent-blue: #23548f;
+      --border-parchment: #8b6d47;
+      --border-dark: #3a2b1b;
+      --panel-bg: rgba(26, 20, 15, 0.94);
+      --panel-border: #6d5334;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    body {
+      font-family: 'Cinzel', 'Georgia', 'Times New Roman', serif;
+      background: var(--bg-dark);
+      color: var(--parchment);
+      overflow: hidden;
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Main Viewport & Canvas */
+    #viewport-container {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      background: #1a2217;
+      cursor: grab;
+    }
+    #viewport-container:active {
+      cursor: grabbing;
+    }
+    #game-canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    /* Top HUD Bar */
+    #top-hud {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 52px;
+      background: linear-gradient(180deg, rgba(16, 12, 9, 0.96) 0%, rgba(32, 24, 18, 0.9) 100%);
+      border-bottom: 2px solid var(--accent-gold);
+      box-shadow: 0 4px 15px rgba(0,0,0,0.8);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 16px;
+      z-index: 100;
+      font-size: 13px;
+    }
+
+    .hud-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .fief-title {
+      font-size: 16px;
+      font-weight: bold;
+      color: var(--accent-gold-light);
+      letter-spacing: 1px;
+      text-shadow: 1px 1px 2px #000;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .hud-item {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      background: rgba(0, 0, 0, 0.4);
+      padding: 4px 8px;
+      border-radius: 4px;
+      border: 1px solid var(--border-dark);
+      cursor: help;
+      position: relative;
+    }
+    .hud-item span.val {
+      font-weight: bold;
+      color: #fff;
+    }
+    .hud-item span.lbl {
+      color: var(--parchment-dark);
+      font-size: 11px;
+    }
+    .hud-icon {
+      font-size: 14px;
+    }
+
+    /* Vital colors */
+    .val-approval { color: #85e085 !important; }
+    .val-gold { color: #ffd700 !important; }
+    .val-danger { color: #ff6b6b !important; }
+
+    /* Speed & Season Controls */
+    .speed-btn {
+      background: #2b1f14;
+      color: var(--parchment);
+      border: 1px solid var(--border-parchment);
+      padding: 4px 8px;
+      font-size: 12px;
+      cursor: pointer;
+      border-radius: 3px;
+      transition: all 0.2s;
+    }
+    .speed-btn:hover {
+      background: var(--accent-gold);
+      color: #000;
+    }
+    .speed-btn.active {
+      background: var(--accent-gold);
+      color: #12100e;
+      font-weight: bold;
+      box-shadow: 0 0 6px var(--accent-gold);
+    }
+
+    /* Season Badge */
+    .season-badge {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-weight: bold;
+      border: 1px solid var(--accent-gold);
+      background: rgba(0,0,0,0.5);
+    }
+    .season-spring { color: #a3e635; border-color: #84cc16; }
+    .season-summer { color: #facc15; border-color: #eab308; }
+    .season-autumn { color: #fb923c; border-color: #f97316; }
+    .season-winter { color: #93c5fd; border-color: #60a5fa; }
+
+    /* Bottom Control Bar */
+    #bottom-bar {
+      position: absolute;
+      bottom: 12px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--panel-bg);
+      border: 2px solid var(--panel-border);
+      border-radius: 8px;
+      padding: 6px 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.85);
+      z-index: 100;
+    }
+
+    .build-tab-btn {
+      background: #2c2117;
+      color: var(--parchment);
+      border: 1px solid var(--border-dark);
+      padding: 8px 14px;
+      font-family: inherit;
+      font-size: 13px;
+      cursor: pointer;
+      border-radius: 4px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      transition: all 0.2s;
+    }
+    .build-tab-btn:hover, .build-tab-btn.active {
+      background: linear-gradient(180deg, #5c432a 0%, #3a2b1b 100%);
+      border-color: var(--accent-gold);
+      color: var(--accent-gold-light);
+      transform: translateY(-2px);
+    }
+
+    /* Sub-menu Tray for Buildings */
+    #build-tray {
+      position: absolute;
+      bottom: 74px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--panel-bg);
+      border: 2px solid var(--panel-border);
+      border-radius: 8px;
+      padding: 10px;
+      display: none;
+      flex-wrap: wrap;
+      gap: 10px;
+      max-width: 820px;
+      justify-content: center;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.9);
+      z-index: 99;
+    }
+    #build-tray.show {
+      display: flex;
+      animation: fadeIn 0.2s ease-out;
+    }
+
+    .build-card {
+      background: #211912;
+      border: 1px solid var(--border-dark);
+      border-radius: 6px;
+      padding: 8px 10px;
+      width: 140px;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      transition: all 0.2s;
+      position: relative;
+    }
+    .build-card:hover {
+      background: #3d2c1d;
+      border-color: var(--accent-gold);
+      transform: translateY(-3px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.6);
+    }
+    .build-card.selected {
+      border-color: #ffd700;
+      background: #4a3520;
+      box-shadow: 0 0 8px #ffd700;
+    }
+    .build-card-title {
+      font-size: 13px;
+      font-weight: bold;
+      color: var(--accent-gold-light);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .build-card-cost {
+      font-size: 11px;
+      color: #b0a088;
+      line-height: 1.3;
+    }
+    .build-card-desc {
+      font-size: 10px;
+      color: #8c7860;
+      line-height: 1.2;
+    }
+
+    /* Right Side Inspector & Details */
+    #inspector-panel {
+      position: absolute;
+      top: 62px;
+      right: 14px;
+      width: 320px;
+      max-height: calc(100vh - 84px);
+      background: var(--panel-bg);
+      border: 2px solid var(--panel-border);
+      border-radius: 8px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.85);
+      padding: 16px;
+      display: none;
+      flex-direction: column;
+      gap: 12px;
+      overflow-y: auto;
+      z-index: 95;
+    }
+    #inspector-panel.show {
+      display: flex;
+      animation: slideLeft 0.25s ease-out;
+    }
+
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border-dark);
+      padding-bottom: 8px;
+    }
+    .panel-title {
+      font-size: 16px;
+      color: var(--accent-gold-light);
+      font-weight: bold;
+    }
+    .panel-close-btn {
+      background: transparent;
+      border: none;
+      color: #999;
+      font-size: 18px;
+      cursor: pointer;
+    }
+    .panel-close-btn:hover { color: #fff; }
+
+    .stat-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      padding: 3px 0;
+      border-bottom: 1px dashed rgba(100, 75, 50, 0.4);
+    }
+    .stat-row span:first-child { color: var(--parchment-dark); }
+    .stat-row span:last-child { color: #fff; font-weight: bold; }
+
+    .action-btn {
+      background: linear-gradient(180deg, #4d3622 0%, #2e2014 100%);
+      border: 1px solid var(--border-parchment);
+      color: var(--parchment);
+      padding: 6px 12px;
+      font-family: inherit;
+      font-size: 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: all 0.15s;
+    }
+    .action-btn:hover {
+      background: var(--accent-gold);
+      color: #12100e;
+      border-color: var(--accent-gold-light);
+    }
+    .action-btn.danger {
+      background: #6b1d1d;
+      border-color: #9c2b2b;
+    }
+    .action-btn.danger:hover {
+      background: #b82828;
+      color: #fff;
+    }
+
+    /* Left Side Chronicle / Log */
+    #chronicle-panel {
+      position: absolute;
+      bottom: 14px;
+      left: 14px;
+      width: 320px;
+      height: 190px;
+      background: rgba(20, 15, 11, 0.85);
+      border: 1px solid var(--border-dark);
+      border-radius: 6px;
+      display: flex;
+      flex-direction: column;
+      z-index: 90;
+      pointer-events: auto;
+      backdrop-filter: blur(4px);
+    }
+    #chronicle-header {
+      padding: 6px 10px;
+      font-size: 12px;
+      font-weight: bold;
+      color: var(--accent-gold);
+      border-bottom: 1px solid var(--border-dark);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(0,0,0,0.3);
+    }
+    #chronicle-logs {
+      flex: 1;
+      padding: 8px;
+      overflow-y: auto;
+      font-size: 11px;
+      line-height: 1.4;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .log-item {
+      color: #c9b99d;
+      border-left: 2px solid var(--border-parchment);
+      padding-left: 6px;
+    }
+    .log-war { border-color: #e53e3e; color: #ffa8a8; }
+    .log-event { border-color: #d69e2e; color: #fefcbf; }
+    .log-birth { border-color: #38a169; color: #c6f6d5; }
+
+    /* Modal / Dialog */
+    .modal-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0,0,0,0.7);
+      backdrop-filter: blur(3px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 200;
+    }
+    .modal-overlay.show {
+      display: flex;
+    }
+    .modal-card {
+      background: var(--panel-bg);
+      border: 2px solid var(--accent-gold);
+      border-radius: 8px;
+      width: 440px;
+      padding: 20px;
+      box-shadow: 0 10px 35px rgba(0,0,0,0.9);
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .slider-container {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    input[type=range] {
+      accent-color: var(--accent-gold);
+      cursor: pointer;
+    }
+
+    /* Threat Alert Banner */
+    #threat-alert {
+      position: absolute;
+      top: 62px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: linear-gradient(90deg, transparent 0%, rgba(139, 0, 0, 0.9) 20%, rgba(139, 0, 0, 0.9) 80%, transparent 100%);
+      color: #fff;
+      padding: 8px 40px;
+      font-size: 14px;
+      font-weight: bold;
+      border-top: 1px solid #ff4444;
+      border-bottom: 1px solid #ff4444;
+      display: none;
+      align-items: center;
+      gap: 12px;
+      text-shadow: 0 2px 4px #000;
+      z-index: 105;
+      animation: pulseAlert 1.5s infinite;
+    }
+    #threat-alert.show {
+      display: flex;
+    }
+
+    /* Minimap Widget */
+    #minimap-container {
+      position: absolute;
+      top: 62px;
+      left: 14px;
+      width: 130px;
+      height: 130px;
+      background: rgba(18, 14, 10, 0.85);
+      border: 2px solid var(--border-parchment);
+      border-radius: 6px;
+      overflow: hidden;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.7);
+      z-index: 90;
+    }
+    #minimap-canvas {
+      width: 100%;
+      height: 100%;
+    }
+
+    /* Action Buttons */
+    .top-action-btn {
+      background: transparent;
+      border: 1px solid var(--border-parchment);
+      color: var(--parchment-dark);
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .top-action-btn:hover {
+      background: rgba(255,255,255,0.1);
+      color: #fff;
+      border-color: var(--accent-gold);
+    }
+
+    /* Rich Tooltip */
+    #game-tooltip {
+      position: absolute;
+      background: rgba(15, 12, 9, 0.96);
+      border: 1px solid var(--accent-gold);
+      color: var(--parchment);
+      padding: 8px 12px;
+      font-size: 12px;
+      border-radius: 5px;
+      pointer-events: none;
+      z-index: 300;
+      display: none;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.85);
+      min-width: 180px;
+      line-height: 1.4;
+    }
+
+    @keyframes pulseAlert {
+      0%, 100% { transform: translateX(-50%) scale(1); }
+      50% { transform: translateX(-50%) scale(1.03); }
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translate(-50%, 10px); }
+      to { opacity: 1; transform: translate(-50%, 0); }
+    }
+    @keyframes slideLeft {
+      from { opacity: 0; transform: translateX(20px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Viewport Canvas Container -->
+  <div id="viewport-container">
+    <canvas id="game-canvas"></canvas>
+  </div>
+
+  <!-- Top HUD Bar -->
+  <header id="top-hud">
+    <div class="hud-group">
+      <div class="fief-title">
+        <span>⚔️</span>
+        <span>Ashborne Fief</span>
+      </div>
+
+      <!-- Season & Year -->
+      <div id="season-badge" class="season-badge season-spring">
+        <span id="season-icon">🌱</span>
+        <span id="season-text">Spring, Year 1</span>
+      </div>
+
+      <!-- Speed buttons -->
+      <div class="hud-group" style="gap: 4px;">
+        <button class="speed-btn" id="btn-speed-pause" title="Pause (Space)">⏸</button>
+        <button class="speed-btn active" id="btn-speed-1" title="Normal Speed (1x)">1x</button>
+        <button class="speed-btn" id="btn-speed-2" title="Fast Speed (2x)">2x</button>
+        <button class="speed-btn" id="btn-speed-5" title="Very Fast (5x)">5x</button>
+      </div>
+    </div>
+
+    <!-- Core Vital Stats -->
+    <div class="hud-group">
+      <div class="hud-item" id="hud-pop">
+        <span class="hud-icon">👥</span>
+        <span class="val" id="val-pop">10/12</span>
+        <span class="lbl">(Idle: <span id="val-idle">3</span>)</span>
+      </div>
+
+      <div class="hud-item" id="hud-approval">
+        <span class="hud-icon">👑</span>
+        <span class="val val-approval" id="val-approval">65%</span>
+        <span class="lbl" id="lbl-approval-status">Content</span>
+      </div>
+
+      <div class="hud-item" id="hud-gold">
+        <span class="hud-icon">🪙</span>
+        <span class="val val-gold" id="val-gold">50</span>
+      </div>
+
+      <div class="hud-item" id="hud-food">
+        <span class="hud-icon">🥖</span>
+        <span class="val" id="val-food">60</span>
+        <span class="lbl">(<span id="val-food-days">30</span>d)</span>
+      </div>
+
+      <div class="hud-item" id="hud-wood">
+        <span class="hud-icon">🪵</span>
+        <span class="val" id="val-firewood">35</span>
+      </div>
+
+      <div class="hud-item" id="hud-militia">
+        <span class="hud-icon">🛡️</span>
+        <span class="val" id="val-militia">0/0</span>
+      </div>
+    </div>
+
+    <!-- Right HUD: Settings, Sound, Save -->
+    <div class="hud-group">
+      <button class="top-action-btn" id="btn-tax-modal">⚖️ Taxes (<span id="btn-tax-val">5%</span>)</button>
+      <button class="top-action-btn" id="btn-sound-toggle">🔊 Audio: On</button>
+      <button class="top-action-btn" id="btn-save-game">💾 Save</button>
+      <button class="top-action-btn" id="btn-new-game" style="color:#e08585;">🔄 Reset</button>
+      <button class="top-action-btn" id="btn-help-modal">📜 Guide</button>
+    </div>
+  </header>
+
+  <!-- Threat Alert Banner -->
+  <div id="threat-alert">
+    <span>⚠️</span>
+    <span id="threat-alert-msg">BANDITS SIGHTED: Raider warband approaching the fief in 45 days!</span>
+  </div>
+
+  <!-- Minimap -->
+  <div id="minimap-container">
+    <canvas id="minimap-canvas" width="130" height="130"></canvas>
+  </div>
+
+  <!-- Left Chronicle Log -->
+  <div id="chronicle-panel">
+    <div id="chronicle-header">
+      <span>📜 Fief Chronicle</span>
+      <span style="font-size: 10px; color:#8c7860;">Latest events</span>
+    </div>
+    <div id="chronicle-logs">
+      <div class="log-item">Lord Valedor takes command of the desolate Ashborne riverside.</div>
+      <div class="log-item">Spring has arrived. Sowing wheat and securing logs must begin.</div>
+    </div>
+  </div>
+
+  <!-- Sub-menu Tray for Buildings -->
+  <div id="build-tray"></div>
+
+  <!-- Bottom Build / Management Navigation -->
+  <div id="bottom-bar">
+    <button class="build-tab-btn" data-category="infra">
+      <span>🛣️</span>
+      <span>Infrastructure</span>
+    </button>
+    <button class="build-tab-btn" data-category="resource">
+      <span>🪓</span>
+      <span>Extraction</span>
+    </button>
+    <button class="build-tab-btn" data-category="farming">
+      <span>🌾</span>
+      <span>Agriculture</span>
+    </button>
+    <button class="build-tab-btn" data-category="crafting">
+      <span>⚒️</span>
+      <span>Industry</span>
+    </button>
+    <button class="build-tab-btn" data-category="civic">
+      <span>⛪</span>
+      <span>Civic & Church</span>
+    </button>
+    <button class="build-tab-btn" data-category="military">
+      <span>🏰</span>
+      <span>Defense & Army</span>
+    </button>
+    <button class="build-tab-btn" id="btn-demolish-mode" style="border-color:#8b2323;">
+      <span>🔨</span>
+      <span>Demolish</span>
+    </button>
+  </div>
+
+  <!-- Right Inspector Panel -->
+  <aside id="inspector-panel">
+    <div class="panel-header">
+      <div class="panel-title" id="insp-title">Burgage Plot #1</div>
+      <button class="panel-close-btn" id="btn-close-insp">✕</button>
+    </div>
+    <div id="insp-body"></div>
+  </aside>
+
+  <!-- Tax & Policy Modal -->
+  <div class="modal-overlay" id="modal-tax">
+    <div class="modal-card">
+      <div class="panel-header">
+        <div class="panel-title">⚖️ Fief Taxation & Feudal Tithes</div>
+        <button class="panel-close-btn" onclick="document.getElementById('modal-tax').classList.remove('show')">✕</button>
+      </div>
+      <p style="font-size:12px; color:var(--parchment-dark); line-height:1.4;">
+        Levy monthly coinage from settled households. Higher taxation rapidly diminishes approval, leading to emigration and banditry.
+      </p>
+      <div class="slider-container">
+        <div style="display:flex; justify-content:space-between; font-size:13px;">
+          <span>Tax Rate:</span>
+          <span id="tax-slider-val" style="font-weight:bold; color:var(--accent-gold);">5%</span>
+        </div>
+        <input type="range" id="tax-slider" min="0" max="30" step="1" value="5">
+      </div>
+      <div class="stat-row">
+        <span>Estimated Monthly Income:</span>
+        <span id="tax-est-gold">+3 Gold / mo</span>
+      </div>
+      <div class="stat-row">
+        <span>Approval Impact:</span>
+        <span id="tax-est-approval" style="color:#ff8888;">-4% / mo</span>
+      </div>
+      <button class="action-btn" onclick="document.getElementById('modal-tax').classList.remove('show')">Confirm Decrees</button>
+    </div>
+  </div>
+
+  <!-- Guide Modal -->
+  <div class="modal-overlay" id="modal-help">
+    <div class="modal-card" style="width: 520px; max-height:85vh; overflow-y:auto;">
+      <div class="panel-header">
+        <div class="panel-title">📜 Lord's Guidebook (Ashborne)</div>
+        <button class="panel-close-btn" onclick="document.getElementById('modal-help').classList.remove('show')">✕</button>
+      </div>
+      <div style="font-size:12px; color:#d8c39d; line-height:1.5; display:flex; flex-direction:column; gap:10px;">
+        <p><strong>1. Settling & Housing:</strong> Construct <em>Dirt Roads</em> to connect facilities. Build <em>Burgage Plots</em> so peasants have warm shelter. Upgrade their backyards into Vegetable Gardens or Chicken Coops to supply passive foodstuffs!</p>
+        <p><strong>2. The 4 Seasons:</strong> In <em>Spring</em>, assign farmers to plow and sow wheat fields. In <em>Summer</em>, crops ripen. In <em>Autumn</em>, harvest grains swiftly. In <em>Winter</em>, the river freezes and farmland ceases—ensure you stockpile <em>Firewood</em> and food or your peasants will freeze and starve!</p>
+        <p><strong>3. Production Chains:</strong> Raw Logs → Sawmill (Planks & Firewood). Wheat → Windmill (Flour) → Bakery (Bread). Iron Ore + Wood → Blacksmith (Spears & Bows). Diverse foods boost your <em>Approval</em>!</p>
+        <p><strong>4. Militia & Fortress Defense:</strong> When raiders or rival knights approach, raise <em>Spear Militia</em> and <em>Archer Militia</em> from your drafted workers. Position Archers atop <em>Watchtowers</em> or behind <em>Stone Walls</em> for immense range and defensive multipliers.</p>
+        <p><strong>5. Controls:</strong> Left-drag / WASD to pan camera. Mouse wheel to zoom. Left-click to select buildings or drag-box militia. Right-click to command militia movement and attack.</p>
+      </div>
+      <button class="action-btn" onclick="document.getElementById('modal-help').classList.remove('show')">Return to Manor</button>
+    </div>
+  </div>
+
+  <!-- Tooltip -->
+  <div id="game-tooltip"></div>
+
+  <!-- GAME SCRIPT -->
+  <script>
+    /* ==========================================================================
+       ASHBORNE: FEUDAL MANOR SIMULATION ENGINE
+       Pure Vanilla JS, 2D Isometric Canvas, Procedural Web Audio API
+       ========================================================================== */
+
+    class SoundEngine {
+      constructor() {
+        this.ctx = null;
+        this.enabled = true;
+        this.bgmTimer = null;
+        this.isPlayingBGM = false;
+      }
+
+      init() {
+        if (!this.ctx) {
+          const AudioContext = window.AudioContext || window.webkitAudioContext;
+          if (AudioContext) {
+            this.ctx = new AudioContext();
+            this.startLuteBGM();
+          }
+        } else if (this.ctx.state === 'suspended') {
+          this.ctx.resume();
+        }
+      }
+
+      toggleSound() {
+        this.enabled = !this.enabled;
+        if (!this.enabled && this.ctx) {
+          this.ctx.suspend();
+        } else if (this.enabled && this.ctx) {
+          this.ctx.resume();
+        }
+        return this.enabled;
+      }
+
+      playPluck(freq, duration = 1.2, gainLevel = 0.15) {
+        if (!this.enabled || !this.ctx) return;
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        const filter = this.ctx.createBiquadFilter();
+
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(freq, now);
+
+        filter.type = 'lowpass';
+        filter.frequency.setValueAtTime(1400, now);
+        filter.frequency.exponentialRampToValueAtTime(300, now + duration);
+
+        gain.gain.setValueAtTime(gainLevel, now);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+
+        osc.connect(filter);
+        filter.connect(gain);
+        gain.connect(this.ctx.destination);
+
+        osc.start(now);
+        osc.stop(now + duration);
+      }
+
+      playHammer() {
+        if (!this.enabled || !this.ctx) return;
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(160, now);
+        osc.frequency.exponentialRampToValueAtTime(40, now + 0.12);
+        gain.gain.setValueAtTime(0.25, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.12);
+
+        const click = this.ctx.createOscillator();
+        const cGain = this.ctx.createGain();
+        click.type = 'square';
+        click.frequency.setValueAtTime(900, now);
+        cGain.gain.setValueAtTime(0.08, now);
+        cGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.04);
+        click.connect(cGain);
+        cGain.connect(this.ctx.destination);
+        click.start(now);
+        click.stop(now + 0.04);
+      }
+
+      playBowTwang() {
+        if (!this.enabled || !this.ctx) return;
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(380, now);
+        osc.frequency.exponentialRampToValueAtTime(120, now + 0.15);
+        gain.gain.setValueAtTime(0.2, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.15);
+      }
+
+      playClash() {
+        if (!this.enabled || !this.ctx) return;
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(800, now);
+        osc.frequency.exponentialRampToValueAtTime(150, now + 0.18);
+        gain.gain.setValueAtTime(0.18, now);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.18);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.18);
+      }
+
+      playWarhorn() {
+        if (!this.enabled || !this.ctx) return;
+        const notes = [146.83, 174.61, 220.00, 293.66];
+        notes.forEach((freq, idx) => {
+          setTimeout(() => {
+            if (!this.ctx) return;
+            const now = this.ctx.currentTime;
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            const filter = this.ctx.createBiquadFilter();
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(freq, now);
+            filter.type = 'bandpass';
+            filter.frequency.setValueAtTime(450, now);
+            filter.Q.setValueAtTime(3, now);
+            gain.gain.setValueAtTime(0.2, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.8);
+            osc.connect(filter);
+            filter.connect(gain);
+            gain.connect(this.ctx.destination);
+            osc.start(now);
+            osc.stop(now + 0.8);
+          }, idx * 220);
+        });
+      }
+
+      startLuteBGM() {
+        if (this.isPlayingBGM) return;
+        this.isPlayingBGM = true;
+
+        const dorianNotes = [
+          146.83, 164.81, 174.61, 196.00, 220.00, 246.94,
+          261.63, 293.66, 329.63, 349.23, 440.00
+        ];
+
+        const pattern = [0, 4, 7, 4, 2, 4, 6, 4, 3, 5, 7, 5, 2, 0, 4, 0];
+        let step = 0;
+
+        const tick = () => {
+          if (this.enabled && this.ctx && this.ctx.state === 'running') {
+            const noteIdx = pattern[step % pattern.length];
+            const baseFreq = dorianNotes[noteIdx];
+            this.playPluck(baseFreq, 1.4, 0.08);
+            if (step % 4 === 0) {
+              this.playPluck(dorianNotes[0] * 0.5, 2.0, 0.09);
+            }
+            if (Math.random() < 0.25) {
+              this.playPluck(baseFreq * 1.5, 0.8, 0.04);
+            }
+            step++;
+          }
+          this.bgmTimer = setTimeout(tick, 450);
+        };
+        tick();
+      }
+    }
+
+    const sound = new SoundEngine();
+
+    const MAP_SIZE = 46;
+    const TILE_WIDTH = 64;
+    const TILE_HEIGHT = 32;
+
+    const SEASONS = ['Spring', 'Summer', 'Autumn', 'Winter'];
+    const SEASON_ICONS = { Spring: '🌱', Summer: '☀️', Autumn: '🍂', Winter: '❄️' };
+    const SEASON_DURATION = 60;
+
+    const TERRAIN = {
+      GRASS: 0,
+      FOREST: 1,
+      WATER: 2,
+      STONE_NODE: 3,
+      IRON_NODE: 4,
+      FERTILE: 5
+    };
+
+    const BUILDINGS = {
+      DIRT_ROAD: {
+        id: 'DIRT_ROAD', name: 'Dirt Road', cat: 'infra',
+        w: 1, h: 1, cost: { wood: 0 },
+        desc: 'Increases villager movement speed by 60%.'
+      },
+      COBBLE_ROAD: {
+        id: 'COBBLE_ROAD', name: 'Cobblestone Road', cat: 'infra',
+        w: 1, h: 1, cost: { stone: 1 },
+        desc: 'Paved stone road. 90% speed boost and higher fire resistance.'
+      },
+      BURGAGE_PLOT: {
+        id: 'BURGAGE_PLOT', name: 'Burgage Plot', cat: 'infra',
+        w: 2, h: 2, cost: { wood: 5, planks: 2 },
+        desc: 'Houses 1 family (up to 4 people). Backyard can be upgraded for food.'
+      },
+      WELL: {
+        id: 'WELL', name: 'Water Well', cat: 'infra',
+        w: 1, h: 1, cost: { wood: 3, stone: 4 },
+        desc: 'Provides fresh water for villagers and assists fire extinguishing.'
+      },
+
+      LOGGING_CAMP: {
+        id: 'LOGGING_CAMP', name: 'Logging Camp', cat: 'resource',
+        w: 2, h: 2, cost: { wood: 6 }, maxWorkers: 2,
+        desc: 'Fells nearby forest trees into raw timber logs.'
+      },
+      SAWPIT: {
+        id: 'SAWPIT', name: 'Sawpit', cat: 'resource',
+        w: 2, h: 2, cost: { wood: 8 }, maxWorkers: 2,
+        desc: 'Converts raw logs into construction Planks and Firewood.'
+      },
+      FORAGER_HUT: {
+        id: 'FORAGER_HUT', name: 'Forager Hut', cat: 'resource',
+        w: 2, h: 2, cost: { wood: 4 }, maxWorkers: 2,
+        desc: 'Gathers wild seasonal berries and herbs from the brush.'
+      },
+      HUNTING_CAMP: {
+        id: 'HUNTING_CAMP', name: 'Hunting Camp', cat: 'resource',
+        w: 2, h: 2, cost: { wood: 6 }, maxWorkers: 2,
+        desc: 'Hunts wild forest game for meat and hides.'
+      },
+      STONE_QUARRY: {
+        id: 'STONE_QUARRY', name: 'Stone Quarry', cat: 'resource',
+        w: 2, h: 2, cost: { wood: 10 }, maxWorkers: 2,
+        desc: 'Extracts cut stones from stone outcrop nodes.'
+      },
+      IRON_MINE: {
+        id: 'IRON_MINE', name: 'Iron Mine', cat: 'resource',
+        w: 2, h: 2, cost: { wood: 12, planks: 4 }, maxWorkers: 2,
+        desc: 'Excavates iron ore from hillside veins for weapon smithing.'
+      },
+
+      WHEAT_FIELD: {
+        id: 'WHEAT_FIELD', name: 'Wheat Field', cat: 'farming',
+        w: 3, h: 3, cost: { wood: 4 }, maxWorkers: 3,
+        desc: 'Sown in Spring, matures in Summer, and harvested in Autumn for Grain.'
+      },
+      WINDMILL: {
+        id: 'WINDMILL', name: 'Windmill', cat: 'farming',
+        w: 2, h: 2, cost: { wood: 12, planks: 6 }, maxWorkers: 2,
+        desc: 'Grinds harvested wheat grain into fine Flour.'
+      },
+      COMMUNAL_BAKERY: {
+        id: 'COMMUNAL_BAKERY', name: 'Communal Bakery', cat: 'farming',
+        w: 2, h: 2, cost: { wood: 8, stone: 6 }, maxWorkers: 2,
+        desc: 'Bakes flour into delicious Bread using firewood.'
+      },
+      SHEEP_PASTURE: {
+        id: 'SHEEP_PASTURE', name: 'Sheep Pasture', cat: 'farming',
+        w: 3, h: 3, cost: { wood: 8 }, maxWorkers: 2,
+        desc: 'Raises sheep for Wool harvesting to make warm clothes.'
+      },
+
+      WEAVER_WORKSHOP: {
+        id: 'WEAVER_WORKSHOP', name: 'Weaver Workshop', cat: 'crafting',
+        w: 2, h: 2, cost: { wood: 6, planks: 3 }, maxWorkers: 2,
+        desc: 'Spins sheep wool into warm Clothes to survive brutal winters.'
+      },
+      BLACKSMITH: {
+        id: 'BLACKSMITH', name: 'Blacksmith Forge', cat: 'crafting',
+        w: 2, h: 2, cost: { wood: 10, stone: 8 }, maxWorkers: 2,
+        desc: 'Forges iron ore and wood into Tools, Spears, and Hunting Bows.'
+      },
+
+      MARKETPLACE: {
+        id: 'MARKETPLACE', name: 'Market Square', cat: 'civic',
+        w: 3, h: 3, cost: { wood: 15 },
+        desc: 'Peasants establish stalls to distribute food, fuel, and clothing.'
+      },
+      WOODEN_CHURCH: {
+        id: 'WOODEN_CHURCH', name: 'Wooden Church', cat: 'civic',
+        w: 3, h: 3, cost: { wood: 20, planks: 10, stone: 8 }, maxWorkers: 1,
+        desc: 'Provides Sunday sermons and graveyard burial, blessing the fief.'
+      },
+      TAVERN: {
+        id: 'TAVERN', name: 'The Boar Tavern', cat: 'civic',
+        w: 2, h: 2, cost: { wood: 14, planks: 6 }, maxWorkers: 2,
+        desc: 'Serves ale to townsfolk, greatly bolstering peasant spirits.'
+      },
+
+      PALISADE: {
+        id: 'PALISADE', name: 'Wooden Palisade', cat: 'military',
+        w: 1, h: 1, cost: { wood: 2 }, hp: 200,
+        desc: 'Sturdy wooden stakes that block invader movement.'
+      },
+      STONE_WALL: {
+        id: 'STONE_WALL', name: 'Stone Wall', cat: 'military',
+        w: 1, h: 1, cost: { stone: 3 }, hp: 600,
+        desc: 'Heavy masonry ramparts to thwart battering rams and raiders.'
+      },
+      WATCHTOWER: {
+        id: 'WATCHTOWER', name: 'Watchtower', cat: 'military',
+        w: 1, h: 1, cost: { wood: 10, stone: 6 }, maxWorkers: 1, hp: 450,
+        desc: 'Garrison archers for +100% range and elevated defense.'
+      },
+      GATEHOUSE: {
+        id: 'GATEHOUSE', name: 'Gatehouse', cat: 'military',
+        w: 2, h: 1, cost: { wood: 12, stone: 10 }, hp: 800,
+        desc: 'Permits friendly villagers while holding off barbarian hordes.'
+      }
+    };
+
+    class GameState {
+      constructor() {
+        this.reset();
+      }
+
+      reset() {
+        this.year = 1;
+        this.seasonIndex = 0;
+        this.seasonTimer = 0;
+        this.gameSpeed = 1;
+        this.gameTime = 0;
+
+        this.resources = {
+          gold: 60,
+          wood: 35,
+          planks: 12,
+          stone: 20,
+          ironOre: 8,
+          grain: 0,
+          flour: 0,
+          bread: 30,
+          meat: 20,
+          berries: 15,
+          vegetables: 0,
+          eggs: 0,
+          firewood: 40,
+          wool: 0,
+          clothes: 10,
+          tools: 10,
+          spears: 5,
+          bows: 5,
+          ale: 0
+        };
+
+        this.approval = 68;
+        this.taxRate = 5;
+        this.villagers = [];
+        this.buildings = [];
+        this.units = [];
+        this.projectiles = [];
+        this.particles = [];
+
+        this.threatTimer = 180;
+        this.threatWave = 1;
+        this.threatActive = false;
+
+        this.blacksmithMode = 'spears';
+
+        this.camera = {
+          x: 0,
+          y: 0,
+          zoom: 1.0,
+          targetZoom: 1.0
+        };
+
+        this.tiles = [];
+        this.initMap();
+        this.initVillagers(10);
+      }
+
+      initMap() {
+        this.tiles = [];
+        for (let y = 0; y < MAP_SIZE; y++) {
+          const row = [];
+          for (let x = 0; x < MAP_SIZE; x++) {
+            const riverX = Math.floor(MAP_SIZE * 0.45 + Math.sin(y * 0.25) * 5);
+            let terrain = TERRAIN.GRASS;
+
+            if (Math.abs(x - riverX) <= 1) {
+              terrain = TERRAIN.WATER;
+            } else {
+              const distFromCenter = Math.hypot(x - MAP_SIZE/2, y - MAP_SIZE/2);
+              const n1 = Math.sin(x * 0.4) + Math.cos(y * 0.4);
+              const n2 = Math.sin(x * 0.15 + 1.2) * Math.cos(y * 0.15 + 0.8);
+
+              if (distFromCenter < 8) {
+                terrain = TERRAIN.GRASS;
+              } else if (n1 > 0.8 && distFromCenter > 10) {
+                terrain = TERRAIN.FOREST;
+              } else if (n2 > 0.6 && x > 30) {
+                terrain = TERRAIN.STONE_NODE;
+              } else if (n2 < -0.65 && y > 30) {
+                terrain = TERRAIN.IRON_NODE;
+              } else if (Math.abs(x - riverX) <= 4) {
+                terrain = TERRAIN.FERTILE;
+              }
+            }
+
+            row.push({
+              terrain: terrain,
+              building: null,
+              hasRoad: false,
+              roadType: null,
+              treeCount: terrain === TERRAIN.FOREST ? 4 : 0
+            });
+          }
+          this.tiles.push(row);
+        }
+      }
+
+      initVillagers(count) {
+        const names = [
+          'Aldous', 'Bertram', 'Cedric', 'Edith', 'Giles', 'Godfrey', 'Gwen', 'Hilda',
+          'Isolde', 'Osric', 'Rannulf', 'Rowena', 'Theobald', 'Wystan', 'Beatrice', 'Emma'
+        ];
+        for (let i = 0; i < count; i++) {
+          this.villagers.push({
+            id: 'v_' + i + '_' + Math.random().toString(36).substr(2, 4),
+            name: names[i % names.length] + ' ' + (i > 15 ? (i+1) : ''),
+            age: 18 + Math.floor(Math.random() * 25),
+            gender: Math.random() > 0.5 ? 'M' : 'F',
+            health: 100,
+            warmth: 100,
+            hunger: 100,
+            job: 'Laborer',
+            workplaceId: null,
+            homeId: null,
+            isMilitia: false,
+            x: MAP_SIZE / 2 + (Math.random() - 0.5) * 4,
+            y: MAP_SIZE / 2 + (Math.random() - 0.5) * 4,
+            targetX: null,
+            targetY: null,
+            speed: 0.04
+          });
+        }
+      }
+    }
+
+    class GameRenderer {
+      constructor(canvas, state) {
+        this.canvas = canvas;
+        this.ctx = canvas.getContext('2d');
+        this.state = state;
+        this.resize();
+
+        const centerTileX = MAP_SIZE / 2;
+        const centerTileY = MAP_SIZE / 2;
+        this.state.camera.x = window.innerWidth / 2 - (centerTileX - centerTileY) * (TILE_WIDTH / 2);
+        this.state.camera.y = window.innerHeight / 2 - (centerTileX + centerTileY) * (TILE_HEIGHT / 2);
+
+        window.addEventListener('resize', () => this.resize());
+      }
+
+      resize() {
+        this.canvas.width = window.innerWidth;
+        this.canvas.height = window.innerHeight;
+      }
+
+      gridToScreen(gx, gy) {
+        const cam = this.state.camera;
+        const sx = (gx - gy) * (TILE_WIDTH / 2) * cam.zoom + cam.x;
+        const sy = (gx + gy) * (TILE_HEIGHT / 2) * cam.zoom + cam.y;
+        return { x: sx, y: sy };
+      }
+
+      screenToGrid(sx, sy) {
+        const cam = this.state.camera;
+        const relX = (sx - cam.x) / cam.zoom;
+        const relY = (sy - cam.y) / cam.zoom;
+        const gx = (relX / (TILE_WIDTH / 2) + relY / (TILE_HEIGHT / 2)) / 2;
+        const gy = (relY / (TILE_HEIGHT / 2) - relX / (TILE_WIDTH / 2)) / 2;
+        return { x: Math.floor(gx), y: Math.floor(gy) };
+      }
+
+      render(hoverTile, selectedBuilding, selectedUnit, activePlacement) {
+        const ctx = this.ctx;
+        const cam = this.state.camera;
+        const season = SEASONS[this.state.seasonIndex];
+
+        ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
+        let skyColor = '#1e261d';
+        if (season === 'Winter') skyColor = '#161d24';
+        else if (season === 'Autumn') skyColor = '#241b16';
+        else if (season === 'Summer') skyColor = '#242918';
+        ctx.fillStyle = skyColor;
+        ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+
+        for (let y = 0; y < MAP_SIZE; y++) {
+          for (let x = 0; x < MAP_SIZE; x++) {
+            const tile = this.state.tiles[y][x];
+            const p = this.gridToScreen(x, y);
+
+            const margin = 100 * cam.zoom;
+            if (p.x < -margin || p.x > this.canvas.width + margin ||
+                p.y < -margin || p.y > this.canvas.height + margin) {
+              continue;
+            }
+
+            this.drawTile(x, y, tile, p, season);
+          }
+        }
+
+        this.renderEntitiesAndOverlays(hoverTile, selectedBuilding, selectedUnit, activePlacement, season);
+        this.renderProjectiles();
+        this.renderParticles(season);
+      }
+
+      drawTile(x, y, tile, p, season) {
+        const ctx = this.ctx;
+        const tw = TILE_WIDTH * this.state.camera.zoom;
+        const th = TILE_HEIGHT * this.state.camera.zoom;
+
+        ctx.beginPath();
+        ctx.moveTo(p.x, p.y);
+        ctx.lineTo(p.x + tw / 2, p.y + th / 2);
+        ctx.lineTo(p.x, p.y + th);
+        ctx.lineTo(p.x - tw / 2, p.y + th / 2);
+        ctx.closePath();
+
+        let fillColor = '#486337';
+        let strokeColor = 'rgba(0,0,0,0.12)';
+
+        if (season === 'Summer') {
+          fillColor = '#5c783e';
+        } else if (season === 'Autumn') {
+          fillColor = '#736235';
+        } else if (season === 'Winter') {
+          fillColor = '#d2dce6';
+          strokeColor = 'rgba(255,255,255,0.18)';
+        }
+
+        if (tile.terrain === TERRAIN.WATER) {
+          fillColor = season === 'Winter' ? '#9fb8cf' : '#285570';
+        } else if (tile.terrain === TERRAIN.FERTILE) {
+          fillColor = season === 'Winter' ? '#b5bebf' : '#3f4c28';
+        } else if (tile.terrain === TERRAIN.STONE_NODE) {
+          fillColor = season === 'Winter' ? '#a5a8ad' : '#646864';
+        } else if (tile.terrain === TERRAIN.IRON_NODE) {
+          fillColor = season === 'Winter' ? '#8f8382' : '#5e3f3b';
+        }
+
+        ctx.fillStyle = fillColor;
+        ctx.fill();
+        ctx.strokeStyle = strokeColor;
+        ctx.lineWidth = 1;
+        ctx.stroke();
+
+        if (tile.hasRoad) {
+          ctx.beginPath();
+          ctx.moveTo(p.x, p.y + th * 0.15);
+          ctx.lineTo(p.x + tw * 0.35, p.y + th * 0.5);
+          ctx.lineTo(p.x, p.y + th * 0.85);
+          ctx.lineTo(p.x - tw * 0.35, p.y + th * 0.5);
+          ctx.closePath();
+          ctx.fillStyle = tile.roadType === 'COBBLE_ROAD' ? '#6e6e73' : '#7d6141';
+          ctx.fill();
+        }
+
+        if (tile.terrain === TERRAIN.WATER) {
+          ctx.fillStyle = season === 'Winter' ? 'rgba(255,255,255,0.4)' : 'rgba(255,255,255,0.15)';
+          ctx.fillRect(p.x - tw*0.15, p.y + th*0.45, tw*0.3, 2);
+        }
+      }
+
+      renderEntitiesAndOverlays(hoverTile, selectedBuilding, selectedUnit, activePlacement, season) {
+        const ctx = this.ctx;
+        const cam = this.state.camera;
+
+        const drawables = [];
+
+        for (let y = 0; y < MAP_SIZE; y++) {
+          for (let x = 0; x < MAP_SIZE; x++) {
+            const tile = this.state.tiles[y][x];
+            if (tile.treeCount > 0 && !tile.building) {
+              drawables.push({
+                depth: x + y + 0.3,
+                type: 'tree',
+                x: x, y: y,
+                count: tile.treeCount
+              });
+            }
+            if (tile.terrain === TERRAIN.STONE_NODE && !tile.building) {
+              drawables.push({ depth: x + y + 0.2, type: 'stone_node', x: x, y: y });
+            } else if (tile.terrain === TERRAIN.IRON_NODE && !tile.building) {
+              drawables.push({ depth: x + y + 0.2, type: 'iron_node', x: x, y: y });
+            }
+          }
+        }
+
+        this.state.buildings.forEach(b => {
+          drawables.push({
+            depth: b.x + b.y + (b.w + b.h) * 0.5,
+            type: 'building',
+            data: b
+          });
+        });
+
+        this.state.villagers.forEach(v => {
+          drawables.push({
+            depth: v.x + v.y + 0.5,
+            type: 'villager',
+            data: v
+          });
+        });
+
+        this.state.units.forEach(u => {
+          drawables.push({
+            depth: u.x + u.y + 0.5,
+            type: 'unit',
+            data: u
+          });
+        });
+
+        drawables.sort((a, b) => a.depth - b.depth);
+
+        drawables.forEach(item => {
+          if (item.type === 'tree') {
+            this.drawTree(item.x, item.y, item.count, season);
+          } else if (item.type === 'stone_node') {
+            this.drawRockNode(item.x, item.y, '#757575');
+          } else if (item.type === 'iron_node') {
+            this.drawRockNode(item.x, item.y, '#8b4b41');
+          } else if (item.type === 'building') {
+            this.drawBuilding(item.data, selectedBuilding === item.data);
+          } else if (item.type === 'villager') {
+            this.drawVillager(item.data);
+          } else if (item.type === 'unit') {
+            this.drawCombatUnit(item.data, selectedUnit === item.data);
+          }
+        });
+
+        if (activePlacement && hoverTile) {
+          this.drawPlacementGhost(hoverTile.x, hoverTile.y, activePlacement);
+        }
+
+        if (hoverTile && !activePlacement) {
+          const p = this.gridToScreen(hoverTile.x, hoverTile.y);
+          const tw = TILE_WIDTH * cam.zoom;
+          const th = TILE_HEIGHT * cam.zoom;
+          ctx.beginPath();
+          ctx.moveTo(p.x, p.y);
+          ctx.lineTo(p.x + tw / 2, p.y + th / 2);
+          ctx.lineTo(p.x, p.y + th);
+          ctx.lineTo(p.x - tw / 2, p.y + th / 2);
+          ctx.closePath();
+          ctx.strokeStyle = 'rgba(255, 215, 0, 0.7)';
+          ctx.lineWidth = 2;
+          ctx.stroke();
+        }
+      }
+
+      drawTree(x, y, count, season) {
+        const ctx = this.ctx;
+        const p = this.gridToScreen(x + 0.5, y + 0.5);
+        const z = this.state.camera.zoom;
+
+        for (let i = 0; i < count; i++) {
+          const offX = ((i % 2) - 0.5) * 12 * z;
+          const offY = (Math.floor(i / 2) - 0.5) * 8 * z;
+          const tx = p.x + offX;
+          const ty = p.y + offY;
+
+          ctx.fillStyle = '#4a3319';
+          ctx.fillRect(tx - 2*z, ty - 16*z, 4*z, 16*z);
+
+          ctx.beginPath();
+          ctx.arc(tx, ty - 22*z, 9*z, 0, Math.PI * 2);
+          if (season === 'Winter') {
+            ctx.fillStyle = '#cedbe6';
+          } else if (season === 'Autumn') {
+            ctx.fillStyle = i % 2 === 0 ? '#b85c14' : '#c98a18';
+          } else {
+            ctx.fillStyle = '#285e25';
+          }
+          ctx.fill();
+
+          if (season === 'Winter') {
+            ctx.beginPath();
+            ctx.arc(tx, ty - 26*z, 6*z, 0, Math.PI * 2);
+            ctx.fillStyle = '#ffffff';
+            ctx.fill();
+          }
+        }
+      }
+
+      drawRockNode(x, y, color) {
+        const ctx = this.ctx;
+        const p = this.gridToScreen(x + 0.5, y + 0.5);
+        const z = this.state.camera.zoom;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y - 4*z, 10*z, 0, Math.PI * 2);
+        ctx.fillStyle = color;
+        ctx.fill();
+        ctx.strokeStyle = '#222';
+        ctx.stroke();
+      }
+
+      drawBuilding(b, isSelected) {
+        const ctx = this.ctx;
+        const cam = this.state.camera;
+        const z = cam.zoom;
+        const p = this.gridToScreen(b.x + b.w / 2, b.y + b.h / 2);
+
+        const bDef = BUILDINGS[b.type];
+        const baseHeight = 28 * z;
+
+        ctx.save();
+
+        if (isSelected) {
+          ctx.shadowColor = '#ffd700';
+          ctx.shadowBlur = 15;
+        }
+
+        const bw = b.w * (TILE_WIDTH / 2) * z;
+        const bh = b.h * (TILE_HEIGHT / 2) * z;
+
+        if (b.type === 'PALISADE' || b.type === 'STONE_WALL') {
+          ctx.fillStyle = b.type === 'STONE_WALL' ? '#787b80' : '#8c6843';
+          ctx.fillRect(p.x - bw*0.4, p.y - 20*z, bw*0.8, 20*z);
+          ctx.strokeStyle = '#222';
+          ctx.strokeRect(p.x - bw*0.4, p.y - 20*z, bw*0.8, 20*z);
+        } else if (b.type === 'WHEAT_FIELD') {
+          const season = SEASONS[this.state.seasonIndex];
+          ctx.beginPath();
+          ctx.ellipse(p.x, p.y, bw * 0.9, bh * 0.8, 0, 0, Math.PI*2);
+          if (season === 'Spring') ctx.fillStyle = '#557a3e';
+          else if (season === 'Summer') ctx.fillStyle = '#c49a37';
+          else if (season === 'Autumn') ctx.fillStyle = '#9c7b28';
+          else ctx.fillStyle = '#b8c7d6';
+          ctx.fill();
+          ctx.strokeStyle = '#4d3922';
+          ctx.stroke();
+        } else {
+          ctx.fillStyle = b.type.includes('STONE') || b.type === 'COMMUNAL_BAKERY' ? '#8a8680' : '#73573c';
+          ctx.fillRect(p.x - bw * 0.45, p.y - baseHeight, bw * 0.9, baseHeight);
+          ctx.strokeStyle = '#2d2218';
+          ctx.lineWidth = 1.5;
+          ctx.strokeRect(p.x - bw * 0.45, p.y - baseHeight, bw * 0.9, baseHeight);
+
+          ctx.beginPath();
+          ctx.moveTo(p.x - bw*0.45, p.y - baseHeight);
+          ctx.lineTo(p.x + bw*0.45, p.y);
+          ctx.moveTo(p.x + bw*0.45, p.y - baseHeight);
+          ctx.lineTo(p.x - bw*0.45, p.y);
+          ctx.strokeStyle = 'rgba(30, 20, 10, 0.4)';
+          ctx.stroke();
+
+          ctx.beginPath();
+          ctx.moveTo(p.x - bw * 0.55, p.y - baseHeight);
+          ctx.lineTo(p.x, p.y - baseHeight - 18 * z);
+          ctx.lineTo(p.x + bw * 0.55, p.y - baseHeight);
+          ctx.closePath();
+          ctx.fillStyle = b.type === 'WOODEN_CHURCH' ? '#54362d' : (b.type === 'TAVERN' ? '#854228' : '#a88544');
+          ctx.fill();
+          ctx.strokeStyle = '#382613';
+          ctx.stroke();
+
+          if (b.type === 'BURGAGE_PLOT' || b.type === 'COMMUNAL_BAKERY' || b.type === 'BLACKSMITH') {
+            ctx.fillStyle = '#444';
+            ctx.fillRect(p.x + bw*0.2, p.y - baseHeight - 22*z, 6*z, 12*z);
+            if (Math.random() < 0.1) {
+              this.state.particles.push({
+                x: p.x + bw*0.25,
+                y: p.y - baseHeight - 22*z,
+                vx: (Math.random() - 0.5) * 0.3,
+                vy: -0.6 - Math.random() * 0.5,
+                alpha: 0.8,
+                size: 3 * z,
+                color: 'rgba(200, 200, 200, '
+              });
+            }
+          }
+
+          if (b.type === 'WINDMILL') {
+            const rot = this.state.gameTime * 2;
+            const cx = p.x;
+            const cy = p.y - baseHeight - 6*z;
+            ctx.save();
+            ctx.translate(cx, cy);
+            ctx.rotate(rot);
+            ctx.strokeStyle = '#e6d8b8';
+            ctx.lineWidth = 2.5 * z;
+            for (let arm = 0; arm < 4; arm++) {
+              ctx.rotate(Math.PI / 2);
+              ctx.beginPath();
+              ctx.moveTo(0, 0);
+              ctx.lineTo(0, -22 * z);
+              ctx.stroke();
+            }
+            ctx.restore();
+          }
+
+          if (b.type === 'BURGAGE_PLOT' && b.backyard) {
+            ctx.font = `${Math.floor(10 * z)}px sans-serif`;
+            let icon = '🥕';
+            if (b.backyard === 'chickens') icon = '🐔';
+            else if (b.backyard === 'goats') icon = '🐐';
+            ctx.fillText(icon, p.x - 8*z, p.y + 6*z);
+          }
+
+          if (b.type === 'WOODEN_CHURCH') {
+            ctx.fillStyle = '#ffd700';
+            ctx.fillRect(p.x - 1.5*z, p.y - baseHeight - 26*z, 3*z, 10*z);
+            ctx.fillRect(p.x - 4*z, p.y - baseHeight - 23*z, 8*z, 3*z);
+          }
+        }
+
+        ctx.font = `bold ${Math.max(9, Math.floor(10 * z))}px sans-serif`;
+        ctx.fillStyle = '#f4e8c1';
+        ctx.textAlign = 'center';
+        ctx.fillText(bDef.name, p.x, p.y + 12 * z);
+
+        ctx.restore();
+      }
+
+      drawVillager(v) {
+        const ctx = this.ctx;
+        const z = this.state.camera.zoom;
+        const p = this.gridToScreen(v.x, v.y);
+
+        ctx.beginPath();
+        ctx.ellipse(p.x, p.y, 4*z, 2*z, 0, 0, Math.PI*2);
+        ctx.fillStyle = 'rgba(0,0,0,0.3)';
+        ctx.fill();
+
+        ctx.fillStyle = v.gender === 'M' ? '#3d5a80' : '#8d5b4c';
+        ctx.fillRect(p.x - 2*z, p.y - 10*z, 4*z, 7*z);
+
+        ctx.beginPath();
+        ctx.arc(p.x, p.y - 12*z, 2.5*z, 0, Math.PI*2);
+        ctx.fillStyle = '#f7d1ba';
+        ctx.fill();
+      }
+
+      drawCombatUnit(u, isSelected) {
+        const ctx = this.ctx;
+        const z = this.state.camera.zoom;
+        const p = this.gridToScreen(u.x, u.y);
+
+        ctx.save();
+        if (isSelected) {
+          ctx.beginPath();
+          ctx.ellipse(p.x, p.y, 8*z, 4*z, 0, 0, Math.PI*2);
+          ctx.strokeStyle = '#00ffcc';
+          ctx.lineWidth = 1.5;
+          ctx.stroke();
+        }
+
+        ctx.beginPath();
+        ctx.ellipse(p.x, p.y, 5*z, 2.5*z, 0, 0, Math.PI*2);
+        ctx.fillStyle = 'rgba(0,0,0,0.4)';
+        ctx.fill();
+
+        if (u.isEnemy) {
+          ctx.fillStyle = '#a62b2b';
+        } else {
+          ctx.fillStyle = u.type === 'archers' ? '#2e6b36' : '#284b7a';
+        }
+        ctx.fillRect(p.x - 3*z, p.y - 12*z, 6*z, 9*z);
+
+        ctx.beginPath();
+        ctx.arc(p.x, p.y - 14*z, 3*z, 0, Math.PI*2);
+        ctx.fillStyle = '#b0b8c2';
+        ctx.fill();
+
+        if (u.type === 'spearmen' || u.isEnemy) {
+          ctx.strokeStyle = '#9e7947';
+          ctx.lineWidth = 1.5 * z;
+          ctx.beginPath();
+          ctx.moveTo(p.x + 3*z, p.y - 18*z);
+          ctx.lineTo(p.x + 3*z, p.y);
+          ctx.stroke();
+          ctx.fillStyle = '#d6dbe0';
+          ctx.fillRect(p.x + 2*z, p.y - 20*z, 2*z, 4*z);
+        } else if (u.type === 'archers') {
+          ctx.strokeStyle = '#734d26';
+          ctx.lineWidth = 1.2 * z;
+          ctx.beginPath();
+          ctx.arc(p.x + 4*z, p.y - 10*z, 4*z, -Math.PI*0.4, Math.PI*0.4);
+          ctx.stroke();
+        }
+
+        if (u.hp < u.maxHp) {
+          const hpWidth = 14 * z;
+          ctx.fillStyle = 'rgba(0,0,0,0.6)';
+          ctx.fillRect(p.x - hpWidth/2, p.y - 22*z, hpWidth, 3*z);
+          ctx.fillStyle = u.isEnemy ? '#ff3b3b' : '#3bff68';
+          ctx.fillRect(p.x - hpWidth/2, p.y - 22*z, hpWidth * (u.hp / u.maxHp), 3*z);
+        }
+
+        ctx.restore();
+      }
+
+      drawPlacementGhost(gx, gy, buildingDef) {
+        const ctx = this.ctx;
+        const cam = this.state.camera;
+        const z = cam.zoom;
+
+        let valid = true;
+        for (let dy = 0; dy < buildingDef.h; dy++) {
+          for (let dx = 0; dx < buildingDef.w; dx++) {
+            const tx = gx + dx;
+            const ty = gy + dy;
+            if (tx < 0 || tx >= MAP_SIZE || ty < 0 || ty >= MAP_SIZE) {
+              valid = false;
+              break;
+            }
+            const tile = this.state.tiles[ty][tx];
+            if (tile.terrain === TERRAIN.WATER || tile.building) {
+              valid = false;
+              break;
+            }
+          }
+        }
+
+        for (let dy = 0; dy < buildingDef.h; dy++) {
+          for (let dx = 0; dx < buildingDef.w; dx++) {
+            const p = this.gridToScreen(gx + dx, gy + dy);
+            const tw = TILE_WIDTH * z;
+            const th = TILE_HEIGHT * z;
+
+            ctx.beginPath();
+            ctx.moveTo(p.x, p.y);
+            ctx.lineTo(p.x + tw / 2, p.y + th / 2);
+            ctx.lineTo(p.x, p.y + th);
+            ctx.lineTo(p.x - tw / 2, p.y + th / 2);
+            ctx.closePath();
+            ctx.fillStyle = valid ? 'rgba(46, 204, 113, 0.45)' : 'rgba(231, 76, 60, 0.45)';
+            ctx.fill();
+            ctx.strokeStyle = valid ? '#27ae60' : '#c0392b';
+            ctx.stroke();
+          }
+        }
+      }
+
+      renderProjectiles() {
+        const ctx = this.ctx;
+        const z = this.state.camera.zoom;
+        ctx.strokeStyle = '#fff';
+        ctx.lineWidth = 1.5 * z;
+
+        this.state.projectiles.forEach(p => {
+          const s = this.gridToScreen(p.x, p.y);
+          const arc = Math.sin(p.progress * Math.PI) * 20 * z;
+          ctx.beginPath();
+          ctx.moveTo(s.x, s.y - arc);
+          ctx.lineTo(s.x + p.dx * 6 * z, s.y - arc + p.dy * 6 * z);
+          ctx.stroke();
+        });
+      }
+
+      renderParticles(season) {
+        const ctx = this.ctx;
+        if (season === 'Winter') {
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.75)';
+          for (let i = 0; i < 40; i++) {
+            const sx = (Math.sin(this.state.gameTime * 2 + i * 99) * 0.5 + 0.5) * this.canvas.width;
+            const sy = ((this.state.gameTime * 80 + i * 35) % this.canvas.height);
+            ctx.fillRect(sx, sy, 2, 2);
+          }
+        }
+
+        for (let i = this.state.particles.length - 1; i >= 0; i--) {
+          const pt = this.state.particles[i];
+          pt.x += pt.vx;
+          pt.y += pt.vy;
+          pt.alpha -= 0.015;
+
+          if (pt.alpha <= 0) {
+            this.state.particles.splice(i, 1);
+            continue;
+          }
+          ctx.fillStyle = pt.color + pt.alpha + ')';
+          ctx.beginPath();
+          ctx.arc(pt.x, pt.y, pt.size, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+
+      renderMinimap(minimapCanvas) {
+        const mCtx = minimapCanvas.getContext('2d');
+        const mw = minimapCanvas.width;
+        const mh = minimapCanvas.height;
+        mCtx.clearRect(0, 0, mw, mh);
+
+        const tileScaleX = mw / MAP_SIZE;
+        const tileScaleY = mh / MAP_SIZE;
+
+        for (let y = 0; y < MAP_SIZE; y++) {
+          for (let x = 0; x < MAP_SIZE; x++) {
+            const tile = this.state.tiles[y][x];
+            let col = '#486337';
+            if (tile.terrain === TERRAIN.WATER) col = '#285570';
+            else if (tile.terrain === TERRAIN.FOREST) col = '#20401d';
+            else if (tile.terrain === TERRAIN.STONE_NODE) col = '#666';
+            else if (tile.terrain === TERRAIN.IRON_NODE) col = '#6e3c38';
+            if (tile.building) col = '#d4af37';
+            if (tile.hasRoad) col = '#8a6e4e';
+
+            mCtx.fillStyle = col;
+            mCtx.fillRect(x * tileScaleX, y * tileScaleY, tileScaleX, tileScaleY);
+          }
+        }
+
+        this.state.units.forEach(u => {
+          mCtx.fillStyle = u.isEnemy ? '#ff3b3b' : '#38ef7d';
+          mCtx.fillRect(u.x * tileScaleX - 1, u.y * tileScaleY - 1, 3, 3);
+        });
+
+        const center = this.screenToGrid(this.canvas.width/2, this.canvas.height/2);
+        mCtx.strokeStyle = '#ffffff';
+        mCtx.lineWidth = 1;
+        mCtx.strokeRect((center.x - 6) * tileScaleX, (center.y - 6) * tileScaleY, 12 * tileScaleX, 12 * tileScaleY);
+      }
+    }
+
+    class GameController {
+      constructor() {
+        this.state = new GameState();
+        this.canvas = document.getElementById('game-canvas');
+        this.renderer = new GameRenderer(this.canvas, this.state);
+
+        this.hoverTile = null;
+        this.activePlacement = null;
+        this.selectedBuilding = null;
+        this.selectedUnit = null;
+        this.isDemolishMode = false;
+
+        this.isDragging = false;
+        this.dragStart = { x: 0, y: 0 };
+        this.camStart = { x: 0, y: 0 };
+
+        this.lastTime = performance.now();
+
+        this.initUI();
+        this.initEvents();
+        this.initTooltips();
+        this.loadGame();
+
+        requestAnimationFrame((t) => this.loop(t));
+      }
+
+      initUI() {
+        const tabBtns = document.querySelectorAll('.build-tab-btn[data-category]');
+        const tray = document.getElementById('build-tray');
+
+        tabBtns.forEach(btn => {
+          btn.addEventListener('click', () => {
+            const cat = btn.dataset.category;
+            if (btn.classList.contains('active')) {
+              btn.classList.remove('active');
+              tray.classList.remove('show');
+            } else {
+              tabBtns.forEach(b => b.classList.remove('active'));
+              document.getElementById('btn-demolish-mode').classList.remove('active');
+              this.isDemolishMode = false;
+              btn.classList.add('active');
+              this.populateBuildTray(cat);
+              tray.classList.add('show');
+            }
+          });
+        });
+
+        const demolishBtn = document.getElementById('btn-demolish-mode');
+        demolishBtn.addEventListener('click', () => {
+          this.isDemolishMode = !this.isDemolishMode;
+          this.activePlacement = null;
+          tabBtns.forEach(b => b.classList.remove('active'));
+          tray.classList.remove('show');
+          demolishBtn.classList.toggle('active', this.isDemolishMode);
+        });
+
+        const speeds = [
+          { id: 'btn-speed-pause', speed: 0 },
+          { id: 'btn-speed-1', speed: 1 },
+          { id: 'btn-speed-2', speed: 2 },
+          { id: 'btn-speed-5', speed: 5 }
+        ];
+        speeds.forEach(s => {
+          document.getElementById(s.id).addEventListener('click', () => {
+            this.state.gameSpeed = s.speed;
+            speeds.forEach(item => document.getElementById(item.id).classList.remove('active'));
+            document.getElementById(s.id).classList.add('active');
+          });
+        });
+
+        const taxSlider = document.getElementById('tax-slider');
+        taxSlider.addEventListener('input', (e) => {
+          const val = parseInt(e.target.value, 10);
+          this.state.taxRate = val;
+          document.getElementById('tax-slider-val').textContent = val + '%';
+          document.getElementById('btn-tax-val').textContent = val + '%';
+          const income = Math.floor(this.state.villagers.length * (val / 10));
+          document.getElementById('tax-est-gold').textContent = `+${income} Gold / mo`;
+          document.getElementById('tax-est-approval').textContent = `-${Math.floor(val * 0.7)}% / mo`;
+        });
+        document.getElementById('btn-tax-modal').addEventListener('click', () => {
+          document.getElementById('modal-tax').classList.add('show');
+        });
+
+        document.getElementById('btn-help-modal').addEventListener('click', () => {
+          document.getElementById('modal-help').classList.add('show');
+        });
+
+        const audioBtn = document.getElementById('btn-sound-toggle');
+        audioBtn.addEventListener('click', () => {
+          sound.init();
+          const isOn = sound.toggleSound();
+          audioBtn.textContent = isOn ? '🔊 Audio: On' : '🔈 Audio: Muted';
+        });
+
+        document.getElementById('btn-save-game').addEventListener('click', () => {
+          this.saveGame();
+          this.logChronicle('Fief state recorded into village archives (Saved).', 'event');
+        });
+
+        document.getElementById('btn-new-game').addEventListener('click', () => {
+          if (confirm('Start a new game? All current fief progress will be reset.')) {
+            localStorage.removeItem('ashborne_save');
+            this.state.reset();
+            this.updateSeasonBadge();
+            this.logChronicle('Lord Valedor establishes a brand new settlement.', 'event');
+          }
+        });
+
+        document.getElementById('btn-close-insp').addEventListener('click', () => {
+          document.getElementById('inspector-panel').classList.remove('show');
+          this.selectedBuilding = null;
+          this.selectedUnit = null;
+        });
+      }
+
+      initTooltips() {
+        const tip = document.getElementById('game-tooltip');
+        const showTip = (e, text) => {
+          tip.innerHTML = text;
+          tip.style.display = 'block';
+          tip.style.left = (e.clientX + 14) + 'px';
+          tip.style.top = (e.clientY + 14) + 'px';
+        };
+        const hideTip = () => { tip.style.display = 'none'; };
+
+        document.getElementById('hud-food').addEventListener('mouseenter', (e) => {
+          const r = this.state.resources;
+          showTip(e, `<strong>Food Stockpile</strong><br>
+            🍞 Bread: ${Math.floor(r.bread)}<br>
+            🥩 Meat: ${Math.floor(r.meat)}<br>
+            🍓 Berries: ${Math.floor(r.berries)}<br>
+            🥕 Vegetables: ${Math.floor(r.vegetables)}<br>
+            🥚 Eggs: ${Math.floor(r.eggs)}<br>
+            <em>Diet diversity directly boosts peasant approval!</em>`);
+        });
+        document.getElementById('hud-food').addEventListener('mouseleave', hideTip);
+
+        document.getElementById('hud-approval').addEventListener('mouseenter', (e) => {
+          const app = Math.floor(this.state.approval);
+          showTip(e, `<strong>Peasant Approval: ${app}%</strong><br>
+            &gt;= 55%: Weary migrants seek shelter in your fief<br>
+            &lt; 50%: Grumbling and slow production<br>
+            &lt; 25%: High risk of riot and abandonment`);
+        });
+        document.getElementById('hud-approval').addEventListener('mouseleave', hideTip);
+
+        document.getElementById('hud-pop').addEventListener('mouseenter', (e) => {
+          const houses = this.state.buildings.filter(b => b.type === 'BURGAGE_PLOT').length;
+          const cap = houses * 4;
+          const homeless = Math.max(0, this.state.villagers.length - cap);
+          showTip(e, `<strong>Demographics</strong><br>
+            Population: ${this.state.villagers.length}<br>
+            Shelter Capacity: ${cap}<br>
+            Homeless: ${homeless > 0 ? `<span style="color:#ff6b6b">${homeless}</span>` : '0'}`);
+        });
+        document.getElementById('hud-pop').addEventListener('mouseleave', hideTip);
+      }
+
+      populateBuildTray(cat) {
+        const tray = document.getElementById('build-tray');
+        tray.innerHTML = '';
+
+        if (cat === 'military') {
+          const militiaBox = document.createElement('div');
+          militiaBox.className = 'build-card';
+          militiaBox.style.width = '240px';
+          militiaBox.innerHTML = `
+            <div class="build-card-title">🛡️ Muster Spear Militia</div>
+            <div class="build-card-cost">Cost: 1 Spear, 1 Peasant</div>
+            <div class="build-card-desc">Equip an able-bodied laborer with a spear to defend against bandits.</div>
+            <button class="action-btn" id="btn-raise-spear" style="margin-top:6px;">Draft Spearmen (+1)</button>
+          `;
+          tray.appendChild(militiaBox);
+
+          const archerBox = document.createElement('div');
+          archerBox.className = 'build-card';
+          archerBox.style.width = '240px';
+          archerBox.innerHTML = `
+            <div class="build-card-title">🏹 Muster Archer Militia</div>
+            <div class="build-card-cost">Cost: 1 Bow, 1 Peasant</div>
+            <div class="build-card-desc">Draft archers for lethal ranged attacks. Extreme advantage atop towers.</div>
+            <button class="action-btn" id="btn-raise-bow" style="margin-top:6px;">Draft Archers (+1)</button>
+          `;
+          tray.appendChild(archerBox);
+
+          setTimeout(() => {
+            const rSpear = document.getElementById('btn-raise-spear');
+            const rBow = document.getElementById('btn-raise-bow');
+            if (rSpear) rSpear.onclick = () => this.musterMilitia('spearmen');
+            if (rBow) rBow.onclick = () => this.musterMilitia('archers');
+          }, 0);
+        }
+
+        Object.values(BUILDINGS).filter(b => b.cat === cat).forEach(bDef => {
+          const card = document.createElement('div');
+          card.className = 'build-card';
+          const costStr = Object.entries(bDef.cost).map(([res, amt]) => `${amt} ${res}`).join(', ');
+
+          card.innerHTML = `
+            <div class="build-card-title">${bDef.name}</div>
+            <div class="build-card-cost">${costStr || 'Free'}</div>
+            <div class="build-card-desc">${bDef.desc}</div>
+          `;
+          card.addEventListener('click', () => {
+            sound.init();
+            sound.playPluck(330, 0.4, 0.1);
+            document.querySelectorAll('.build-card').forEach(c => c.classList.remove('selected'));
+            card.classList.add('selected');
+            this.activePlacement = bDef;
+          });
+          tray.appendChild(card);
+        });
+      }
+
+      initEvents() {
+        const c = this.canvas;
+
+        c.addEventListener('mousedown', (e) => {
+          sound.init();
+          if (e.button === 0) {
+            this.isDragging = true;
+            this.dragStart = { x: e.clientX, y: e.clientY };
+            this.camStart = { x: this.state.camera.x, y: this.state.camera.y };
+          } else if (e.button === 2) {
+            e.preventDefault();
+            // If in placement mode, right click cancels it
+            if (this.activePlacement) {
+              this.activePlacement = null;
+              document.querySelectorAll('.build-card').forEach(item => item.classList.remove('selected'));
+              return;
+            }
+            this.handleRightClick(e);
+          }
+        });
+
+        window.addEventListener('mousemove', (e) => {
+          if (this.isDragging) {
+            const dx = e.clientX - this.dragStart.x;
+            const dy = e.clientY - this.dragStart.y;
+            this.state.camera.x = this.camStart.x + dx;
+            this.state.camera.y = this.camStart.y + dy;
+          }
+
+          this.hoverTile = this.renderer.screenToGrid(e.clientX, e.clientY);
+          if (this.hoverTile.x < 0 || this.hoverTile.x >= MAP_SIZE ||
+              this.hoverTile.y < 0 || this.hoverTile.y >= MAP_SIZE) {
+            this.hoverTile = null;
+          }
+        });
+
+        window.addEventListener('mouseup', (e) => {
+          if (e.button === 0) {
+            const movedDist = Math.hypot(e.clientX - this.dragStart.x, e.clientY - this.dragStart.y);
+            this.isDragging = false;
+
+            if (movedDist < 5) {
+              this.handleLeftClick(e);
+            }
+          }
+        });
+
+        c.addEventListener('wheel', (e) => {
+          e.preventDefault();
+          const zoomFactor = e.deltaY < 0 ? 1.15 : 0.87;
+          const newZoom = Math.max(0.6, Math.min(2.0, this.state.camera.zoom * zoomFactor));
+
+          const mouseX = e.clientX;
+          const mouseY = e.clientY;
+          this.state.camera.x = mouseX - (mouseX - this.state.camera.x) * (newZoom / this.state.camera.zoom);
+          this.state.camera.y = mouseY - (mouseY - this.state.camera.y) * (newZoom / this.state.camera.zoom);
+          this.state.camera.zoom = newZoom;
+        }, { passive: false });
+
+        c.addEventListener('contextmenu', e => e.preventDefault());
+
+        window.addEventListener('keydown', (e) => {
+          const speed = 25;
+          if (e.key === 'w' || e.key === 'W' || e.key === 'ArrowUp') this.state.camera.y += speed;
+          if (e.key === 's' || e.key === 'S' || e.key === 'ArrowDown') this.state.camera.y -= speed;
+          if (e.key === 'a' || e.key === 'A' || e.key === 'ArrowLeft') this.state.camera.x += speed;
+          if (e.key === 'd' || e.key === 'D' || e.key === 'ArrowRight') this.state.camera.x -= speed;
+          if (e.key === 'Escape') {
+            this.activePlacement = null;
+            this.isDemolishMode = false;
+            document.querySelectorAll('.build-card').forEach(item => item.classList.remove('selected'));
+            document.getElementById('btn-demolish-mode').classList.remove('active');
+            document.getElementById('build-tray').classList.remove('show');
+            document.querySelectorAll('.build-tab-btn').forEach(b => b.classList.remove('active'));
+          }
+          if (e.key === ' ') {
+            this.state.gameSpeed = this.state.gameSpeed === 0 ? 1 : 0;
+            const pauseBtn = document.getElementById('btn-speed-pause');
+            const oneBtn = document.getElementById('btn-speed-1');
+            if (this.state.gameSpeed === 0) {
+              document.querySelectorAll('.speed-btn').forEach(b => b.classList.remove('active'));
+              pauseBtn.classList.add('active');
+            } else {
+              document.querySelectorAll('.speed-btn').forEach(b => b.classList.remove('active'));
+              oneBtn.classList.add('active');
+            }
+          }
+        });
+      }
+
+      handleLeftClick(e) {
+        if (!this.hoverTile) return;
+        const { x, y } = this.hoverTile;
+
+        if (this.isDemolishMode) {
+          const tile = this.state.tiles[y][x];
+          if (tile.building) {
+            this.demolishBuilding(tile.building);
+          } else if (tile.hasRoad) {
+            tile.hasRoad = false;
+            tile.roadType = null;
+            sound.playHammer();
+          }
+          return;
+        }
+
+        if (this.activePlacement) {
+          this.tryPlaceBuilding(x, y, this.activePlacement);
+          return;
+        }
+
+        const clickedUnit = this.state.units.find(u => Math.hypot(u.x - (x + 0.5), u.y - (y + 0.5)) < 1.0);
+        if (clickedUnit) {
+          this.selectedUnit = clickedUnit;
+          this.selectedBuilding = null;
+          this.showUnitInspector(clickedUnit);
+          sound.playClash();
+          return;
+        }
+
+        const clickedTile = this.state.tiles[y][x];
+        if (clickedTile.building) {
+          this.selectedBuilding = clickedTile.building;
+          this.selectedUnit = null;
+          this.showBuildingInspector(clickedTile.building);
+          sound.playPluck(440, 0.5, 0.1);
+          return;
+        }
+
+        this.selectedBuilding = null;
+        this.selectedUnit = null;
+        document.getElementById('inspector-panel').classList.remove('show');
+      }
+
+      handleRightClick(e) {
+        if (!this.hoverTile) return;
+        const targetGrid = this.hoverTile;
+
+        if (this.selectedUnit && !this.selectedUnit.isEnemy) {
+          const targetEnemy = this.state.units.find(u => u.isEnemy && Math.hypot(u.x - (targetGrid.x + 0.5), u.y - (targetGrid.y + 0.5)) < 1.5);
+          if (targetEnemy) {
+            this.selectedUnit.targetEnemy = targetEnemy;
+            this.selectedUnit.targetX = null;
+            this.selectedUnit.targetY = null;
+            this.logChronicle(`${this.selectedUnit.type.toUpperCase()} engaging enemy raider!`, 'war');
+          } else {
+            this.selectedUnit.targetX = targetGrid.x + 0.5;
+            this.selectedUnit.targetY = targetGrid.y + 0.5;
+            this.selectedUnit.targetEnemy = null;
+          }
+          sound.playBowTwang();
+        }
+      }
+
+      tryPlaceBuilding(gx, gy, bDef) {
+        for (let dy = 0; dy < bDef.h; dy++) {
+          for (let dx = 0; dx < bDef.w; dx++) {
+            const tx = gx + dx;
+            const ty = gy + dy;
+            if (tx < 0 || tx >= MAP_SIZE || ty < 0 || ty >= MAP_SIZE) {
+              this.logChronicle('Cannot build outside fief boundaries!', 'event');
+              return;
+            }
+            const tile = this.state.tiles[ty][tx];
+            if (tile.terrain === TERRAIN.WATER) {
+              this.logChronicle('Cannot build atop riverbed!', 'event');
+              return;
+            }
+            if (tile.building) {
+              this.logChronicle('Ground is obstructed by existing structure.', 'event');
+              return;
+            }
+          }
+        }
+
+        for (const [res, amt] of Object.entries(bDef.cost)) {
+          if ((this.state.resources[res] || 0) < amt) {
+            this.logChronicle(`Insufficient ${res} (Required: ${amt})!`, 'event');
+            return;
+          }
+        }
+
+        for (const [res, amt] of Object.entries(bDef.cost)) {
+          this.state.resources[res] -= amt;
+        }
+
+        if (bDef.id === 'DIRT_ROAD' || bDef.id === 'COBBLE_ROAD') {
+          const tile = this.state.tiles[gy][gx];
+          tile.hasRoad = true;
+          tile.roadType = bDef.id;
+          sound.playHammer();
+          return;
+        }
+
+        const building = {
+          id: 'b_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
+          type: bDef.id,
+          x: gx,
+          y: gy,
+          w: bDef.w,
+          h: bDef.h,
+          hp: bDef.hp || 300,
+          maxHp: bDef.hp || 300,
+          assignedWorkers: [],
+          maxWorkers: bDef.maxWorkers || 0,
+          backyard: null,
+          storage: {}
+        };
+
+        for (let dy = 0; dy < bDef.h; dy++) {
+          for (let dx = 0; dx < bDef.w; dx++) {
+            this.state.tiles[gy + dy][gx + dx].building = building;
+          }
+        }
+
+        this.state.buildings.push(building);
+        sound.playHammer();
+        this.logChronicle(`Constructed ${bDef.name} at [${gx}, ${gy}].`, 'event');
+      }
+
+      demolishBuilding(building) {
+        for (let dy = 0; dy < building.h; dy++) {
+          for (let dx = 0; dx < building.w; dx++) {
+            this.state.tiles[building.y + dy][building.x + dx].building = null;
+          }
+        }
+        building.assignedWorkers.forEach(w => {
+          w.job = 'Laborer';
+          w.workplaceId = null;
+        });
+
+        const bDef = BUILDINGS[building.type];
+        if (bDef && bDef.cost) {
+          for (const [res, amt] of Object.entries(bDef.cost)) {
+            this.state.resources[res] = (this.state.resources[res] || 0) + Math.floor(amt * 0.5);
+          }
+        }
+
+        this.state.buildings = this.state.buildings.filter(b => b !== building);
+        if (this.selectedBuilding === building) {
+          this.selectedBuilding = null;
+          document.getElementById('inspector-panel').classList.remove('show');
+        }
+        sound.playHammer();
+        this.logChronicle(`Demolished ${bDef.name}. Recovered 50% materials.`, 'event');
+      }
+
+      showBuildingInspector(b) {
+        const panel = document.getElementById('inspector-panel');
+        const title = document.getElementById('insp-title');
+        const body = document.getElementById('insp-body');
+        const bDef = BUILDINGS[b.type];
+
+        title.textContent = bDef.name;
+        body.innerHTML = '';
+
+        const statBox = document.createElement('div');
+        statBox.innerHTML = `
+          <div class="stat-row">
+            <span>Integrity:</span>
+            <span>${b.hp} / ${b.maxHp}</span>
+          </div>
+          <div class="stat-row">
+            <span>Location:</span>
+            <span>X:${b.x}, Y:${b.y} (${b.w}x${b.h})</span>
+          </div>
+        `;
+        body.appendChild(statBox);
+
+        if (b.maxWorkers > 0) {
+          const workerBox = document.createElement('div');
+          workerBox.style.marginTop = '8px';
+          workerBox.innerHTML = `
+            <div class="stat-row">
+              <span>Assigned Artisans:</span>
+              <span>${b.assignedWorkers.length} / ${b.maxWorkers}</span>
+            </div>
+            <div style="display:flex; gap:6px; margin-top:6px;">
+              <button class="action-btn" id="btn-add-worker" style="flex:1;">+ Assign Worker</button>
+              <button class="action-btn" id="btn-rem-worker" style="flex:1;">- Remove</button>
+            </div>
+          `;
+          body.appendChild(workerBox);
+
+          setTimeout(() => {
+            const addBtn = document.getElementById('btn-add-worker');
+            const remBtn = document.getElementById('btn-rem-worker');
+            if (addBtn) addBtn.onclick = () => this.assignWorkerToBuilding(b);
+            if (remBtn) remBtn.onclick = () => this.unassignWorkerFromBuilding(b);
+          }, 0);
+        }
+
+        if (b.type === 'BURGAGE_PLOT') {
+          const plotBox = document.createElement('div');
+          plotBox.style.marginTop = '10px';
+          plotBox.style.borderTop = '1px solid var(--border-dark)';
+          plotBox.style.paddingTop = '8px';
+
+          plotBox.innerHTML = `
+            <div style="font-size:12px; font-weight:bold; color:var(--accent-gold); margin-bottom:4px;">
+              🏡 Backyard Extension: ${b.backyard ? b.backyard.toUpperCase() : 'None (Fallow)'}
+            </div>
+            <p style="font-size:11px; color:#a89678; line-height:1.3; margin-bottom:8px;">
+              Expand the rear plot to cultivate food continuously throughout the year.
+            </p>
+            <div style="display:flex; flex-direction:column; gap:4px;">
+              <button class="action-btn" id="btn-ext-veg">🌱 Vegetable Patch (5 Planks)</button>
+              <button class="action-btn" id="btn-ext-chk">🐔 Chicken Coop (4 Planks)</button>
+              <button class="action-btn" id="btn-ext-goat">🐐 Goat Shed (6 Planks)</button>
+            </div>
+          `;
+          body.appendChild(plotBox);
+
+          setTimeout(() => {
+            const bVeg = document.getElementById('btn-ext-veg');
+            const bChk = document.getElementById('btn-ext-chk');
+            const bGoat = document.getElementById('btn-ext-goat');
+            if (bVeg) bVeg.onclick = () => this.upgradeBackyard(b, 'vegetables', 5);
+            if (bChk) bChk.onclick = () => this.upgradeBackyard(b, 'chickens', 4);
+            if (bGoat) bGoat.onclick = () => this.upgradeBackyard(b, 'goats', 6);
+          }, 0);
+        }
+
+        if (b.type === 'BLACKSMITH') {
+          const smithBox = document.createElement('div');
+          smithBox.style.marginTop = '10px';
+          smithBox.innerHTML = `
+            <div style="font-size:12px; font-weight:bold; color:var(--accent-gold); margin-bottom:4px;">
+              ⚒️ Production Focus: ${this.state.blacksmithMode.toUpperCase()}
+            </div>
+            <div style="display:flex; gap:4px;">
+              <button class="action-btn" style="flex:1;" id="btn-smith-spear">Spears</button>
+              <button class="action-btn" style="flex:1;" id="btn-smith-bow">Bows</button>
+              <button class="action-btn" style="flex:1;" id="btn-smith-tool">Tools</button>
+            </div>
+          `;
+          body.appendChild(smithBox);
+          setTimeout(() => {
+            document.getElementById('btn-smith-spear').onclick = () => { this.state.blacksmithMode = 'spears'; this.showBuildingInspector(b); };
+            document.getElementById('btn-smith-bow').onclick = () => { this.state.blacksmithMode = 'bows'; this.showBuildingInspector(b); };
+            document.getElementById('btn-smith-tool').onclick = () => { this.state.blacksmithMode = 'tools'; this.showBuildingInspector(b); };
+          }, 0);
+        }
+
+        const demoBtn = document.createElement('button');
+        demoBtn.className = 'action-btn danger';
+        demoBtn.style.marginTop = '12px';
+        demoBtn.textContent = '🔨 Demolish Building';
+        demoBtn.onclick = () => this.demolishBuilding(b);
+        body.appendChild(demoBtn);
+
+        panel.classList.add('show');
+      }
+
+      upgradeBackyard(b, type, plankCost) {
+        if (this.state.resources.planks < plankCost) {
+          this.logChronicle(`Need ${plankCost} Planks to build backyard ${type}!`, 'event');
+          return;
+        }
+        this.state.resources.planks -= plankCost;
+        b.backyard = type;
+        sound.playHammer();
+        this.logChronicle(`Established ${type} backyard extension on household.`, 'event');
+        this.showBuildingInspector(b);
+      }
+
+      assignWorkerToBuilding(b) {
+        if (b.assignedWorkers.length >= b.maxWorkers) return;
+        const freeWorker = this.state.villagers.find(v => v.job === 'Laborer' && !v.isMilitia);
+        if (!freeWorker) {
+          this.logChronicle('No idle adult laborers available in the fief!', 'event');
+          return;
+        }
+        freeWorker.job = BUILDINGS[b.type].name;
+        freeWorker.workplaceId = b.id;
+        b.assignedWorkers.push(freeWorker);
+        this.showBuildingInspector(b);
+        sound.playPluck(520, 0.3, 0.1);
+      }
+
+      unassignWorkerFromBuilding(b) {
+        if (b.assignedWorkers.length === 0) return;
+        const worker = b.assignedWorkers.pop();
+        worker.job = 'Laborer';
+        worker.workplaceId = null;
+        this.showBuildingInspector(b);
+      }
+
+      showUnitInspector(unit) {
+        const panel = document.getElementById('inspector-panel');
+        const title = document.getElementById('insp-title');
+        const body = document.getElementById('insp-body');
+
+        title.textContent = unit.isEnemy ? '⚔️ Raider Invader' : `🛡️ ${unit.type.toUpperCase()} REGIMENT`;
+        body.innerHTML = `
+          <div class="stat-row">
+            <span>Combat Readiness:</span>
+            <span>HP: ${unit.hp} / ${unit.maxHp}</span>
+          </div>
+          <div class="stat-row">
+            <span>Damage:</span>
+            <span>${unit.attack} Atk</span>
+          </div>
+          <div class="stat-row">
+            <span>Range:</span>
+            <span>${unit.range} Tiles</span>
+          </div>
+          <p style="font-size:11px; color:#d8c39d; margin-top:8px; line-height:1.4;">
+            ${unit.isEnemy ? 'Ravage and burn orders. Destroying local storage and households!' : 'Right-click anywhere on the map to order movement or target enemy forces.'}
+          </p>
+        `;
+        if (!unit.isEnemy) {
+          const disbandBtn = document.createElement('button');
+          disbandBtn.className = 'action-btn danger';
+          disbandBtn.style.marginTop = '10px';
+          disbandBtn.textContent = 'Demobilize to Civilian';
+          disbandBtn.onclick = () => {
+            this.demobilizeUnit(unit);
+            panel.classList.remove('show');
+          };
+          body.appendChild(disbandBtn);
+        }
+        panel.classList.add('show');
+      }
+
+      musterMilitia(type) {
+        const reqWeapon = type === 'spearmen' ? 'spears' : 'bows';
+        if ((this.state.resources[reqWeapon] || 0) < 1) {
+          this.logChronicle(`No forged ${reqWeapon} in the armoury! Produce at blacksmith.`, 'war');
+          return;
+        }
+
+        const candidate = this.state.villagers.find(v => !v.isMilitia && v.age >= 16);
+        if (!candidate) {
+          this.logChronicle('No able-bodied citizens to conscript!', 'war');
+          return;
+        }
+
+        this.state.resources[reqWeapon] -= 1;
+        candidate.isMilitia = true;
+        candidate.job = 'Militia ' + type;
+
+        const militiaUnit = {
+          id: 'u_' + Date.now() + Math.random(),
+          type: type,
+          isEnemy: false,
+          x: candidate.x,
+          y: candidate.y,
+          hp: type === 'spearmen' ? 120 : 75,
+          maxHp: type === 'spearmen' ? 120 : 75,
+          attack: type === 'spearmen' ? 14 : 18,
+          range: type === 'spearmen' ? 1.2 : 6.0,
+          speed: 0.045,
+          targetX: null,
+          targetY: null,
+          targetEnemy: null,
+          attackCooldown: 0,
+          villagerRef: candidate
+        };
+
+        this.state.units.push(militiaUnit);
+        sound.playWarhorn();
+        this.logChronicle(`Muster banner raised: ${type.toUpperCase()} rallied to arms!`, 'war');
+      }
+
+      demobilizeUnit(unit) {
+        if (unit.villagerRef) {
+          unit.villagerRef.isMilitia = false;
+          unit.villagerRef.job = 'Laborer';
+          const refundWeapon = unit.type === 'spearmen' ? 'spears' : 'bows';
+          this.state.resources[refundWeapon] = (this.state.resources[refundWeapon] || 0) + 1;
+        }
+        this.state.units = this.state.units.filter(u => u !== unit);
+        this.logChronicle(`${unit.type.toUpperCase()} unit demobilized back to fields.`, 'event');
+      }
+
+      update(dt) {
+        if (this.state.gameSpeed === 0) return;
+        const simDt = dt * this.state.gameSpeed;
+        this.state.gameTime += simDt;
+
+        this.state.seasonTimer += simDt;
+        if (this.state.seasonTimer >= SEASON_DURATION) {
+          this.state.seasonTimer = 0;
+          this.state.seasonIndex = (this.state.seasonIndex + 1) % 4;
+          if (this.state.seasonIndex === 0) {
+            this.state.year += 1;
+            this.logChronicle(`Year ${this.state.year} dawns across the fiefdom.`, 'event');
+          }
+          const curSeason = SEASONS[this.state.seasonIndex];
+          this.logChronicle(`The season has turned to ${curSeason}.`, 'event');
+          sound.playPluck(587.33, 1.0, 0.15);
+          this.updateSeasonBadge();
+        }
+
+        this.updateVillagers(simDt);
+        this.updateProduction(simDt);
+        this.updateCombat(simDt);
+
+        if (Math.floor(this.state.gameTime) % 30 === 0 && Math.floor(this.state.gameTime - simDt) % 30 !== 0) {
+          this.monthlyAccounting();
+        }
+
+        this.updateHUD();
+      }
+
+      updateVillagers(dt) {
+        const season = SEASONS[this.state.seasonIndex];
+
+        this.state.villagers.forEach(v => {
+          if (season === 'Winter') {
+            if (this.state.resources.firewood > 0) {
+              this.state.resources.firewood -= 0.04 * dt;
+              v.warmth = Math.min(100, v.warmth + 10 * dt);
+            } else {
+              v.warmth -= 2.5 * dt;
+              if (v.warmth <= 0) {
+                v.health -= 3 * dt;
+              }
+            }
+          } else {
+            v.warmth = Math.min(100, v.warmth + 5 * dt);
+          }
+
+          if (this.getTotalFood() > 0) {
+            this.consumeFood(0.03 * dt);
+            v.hunger = Math.min(100, v.hunger + 10 * dt);
+          } else {
+            v.hunger -= 3 * dt;
+            if (v.hunger <= 0) {
+              v.health -= 4 * dt;
+            }
+          }
+
+          if (Math.random() < 0.02) {
+            v.targetX = v.x + (Math.random() - 0.5) * 3;
+            v.targetY = v.y + (Math.random() - 0.5) * 3;
+          }
+
+          if (v.targetX !== null && v.targetY !== null) {
+            const dist = Math.hypot(v.targetX - v.x, v.targetY - v.y);
+            if (dist > 0.1) {
+              const curTile = this.state.tiles[Math.floor(v.y)]?.[Math.floor(v.x)];
+              const speedMult = curTile?.hasRoad ? 1.6 : 1.0;
+              v.x += ((v.targetX - v.x) / dist) * v.speed * speedMult * dt * 20;
+              v.y += ((v.targetY - v.y) / dist) * v.speed * speedMult * dt * 20;
+            } else {
+              v.targetX = null;
+              v.targetY = null;
+            }
+          }
+        });
+
+        for (let i = this.state.villagers.length - 1; i >= 0; i--) {
+          const v = this.state.villagers[i];
+          if (v.health <= 0) {
+            this.logChronicle(`${v.name} perished from exposure or hunger!`, 'war');
+            this.state.villagers.splice(i, 1);
+            this.state.approval = Math.max(0, this.state.approval - 5);
+          }
+        }
+      }
+
+      updateProduction(dt) {
+        const season = SEASONS[this.state.seasonIndex];
+
+        this.state.buildings.forEach(b => {
+          const workerCount = b.assignedWorkers.length;
+
+          if (b.type === 'BURGAGE_PLOT' && b.backyard) {
+            if (b.backyard === 'vegetables' && season !== 'Winter') {
+              this.state.resources.vegetables += 0.02 * dt;
+            } else if (b.backyard === 'chickens') {
+              this.state.resources.eggs += 0.025 * dt;
+            } else if (b.backyard === 'goats') {
+              this.state.resources.meat += 0.015 * dt;
+            }
+          }
+
+          if (workerCount === 0) return;
+
+          if (b.type === 'LOGGING_CAMP') {
+            this.state.resources.wood += 0.06 * workerCount * dt;
+          }
+          else if (b.type === 'SAWPIT' && this.state.resources.wood >= 0.05 * dt) {
+            this.state.resources.wood -= 0.05 * dt;
+            this.state.resources.planks += 0.03 * workerCount * dt;
+            this.state.resources.firewood += 0.04 * workerCount * dt;
+          }
+          else if (b.type === 'FORAGER_HUT' && season !== 'Winter') {
+            this.state.resources.berries += 0.05 * workerCount * dt;
+          }
+          else if (b.type === 'HUNTING_CAMP') {
+            this.state.resources.meat += 0.04 * workerCount * dt;
+          }
+          else if (b.type === 'STONE_QUARRY') {
+            this.state.resources.stone += 0.04 * workerCount * dt;
+          }
+          else if (b.type === 'IRON_MINE') {
+            this.state.resources.ironOre += 0.035 * workerCount * dt;
+          }
+          else if (b.type === 'WHEAT_FIELD') {
+            if (season === 'Autumn') {
+              this.state.resources.grain += 0.15 * workerCount * dt;
+            }
+          }
+          else if (b.type === 'WINDMILL' && this.state.resources.grain >= 0.08 * dt) {
+            this.state.resources.grain -= 0.08 * dt;
+            this.state.resources.flour += 0.08 * workerCount * dt;
+          }
+          else if (b.type === 'COMMUNAL_BAKERY' && this.state.resources.flour >= 0.06 * dt && this.state.resources.firewood >= 0.02 * dt) {
+            this.state.resources.flour -= 0.06 * dt;
+            this.state.resources.firewood -= 0.02 * dt;
+            this.state.resources.bread += 0.12 * workerCount * dt;
+          }
+          else if (b.type === 'SHEEP_PASTURE') {
+            this.state.resources.wool += 0.04 * workerCount * dt;
+          }
+          else if (b.type === 'WEAVER_WORKSHOP' && this.state.resources.wool >= 0.05 * dt) {
+            this.state.resources.wool -= 0.05 * dt;
+            this.state.resources.clothes += 0.03 * workerCount * dt;
+          }
+          else if (b.type === 'BLACKSMITH' && this.state.resources.ironOre >= 0.04 * dt && this.state.resources.wood >= 0.04 * dt) {
+            this.state.resources.ironOre -= 0.04 * dt;
+            this.state.resources.wood -= 0.04 * dt;
+            const target = this.state.blacksmithMode;
+            if (target === 'spears') this.state.resources.spears += 0.025 * workerCount * dt;
+            else if (target === 'bows') this.state.resources.bows += 0.025 * workerCount * dt;
+            else this.state.resources.tools += 0.03 * workerCount * dt;
+          }
+        });
+      }
+
+      updateCombat(dt) {
+        this.state.threatTimer -= dt;
+        const alertEl = document.getElementById('threat-alert');
+        const alertMsg = document.getElementById('threat-alert-msg');
+
+        if (this.state.threatTimer <= 30 && this.state.threatTimer > 0) {
+          alertEl.classList.add('show');
+          alertMsg.textContent = `BANDITS APPROACHING: Warband arriving in ${Math.ceil(this.state.threatTimer)}s! Muster militia!`;
+        } else if (this.state.threatTimer <= 0 && !this.state.threatActive) {
+          this.spawnInvasion();
+          alertEl.classList.remove('show');
+        }
+
+        this.state.units.forEach(u => {
+          u.attackCooldown = Math.max(0, u.attackCooldown - dt);
+
+          if (u.isEnemy) {
+            let closestTarget = null;
+            let minDist = 999;
+
+            this.state.units.filter(f => !f.isEnemy).forEach(friend => {
+              const d = Math.hypot(friend.x - u.x, friend.y - u.y);
+              if (d < minDist) {
+                minDist = d;
+                closestTarget = friend;
+              }
+            });
+
+            if (!closestTarget) {
+              const targetX = MAP_SIZE / 2;
+              const targetY = MAP_SIZE / 2;
+              const d = Math.hypot(targetX - u.x, targetY - u.y);
+              if (d > 1.0) {
+                u.x += ((targetX - u.x) / d) * u.speed * dt * 25;
+                u.y += ((targetY - u.y) / d) * u.speed * dt * 25;
+              }
+            } else {
+              if (minDist <= u.range) {
+                if (u.attackCooldown <= 0) {
+                  closestTarget.hp -= u.attack;
+                  u.attackCooldown = 1.2;
+                  sound.playClash();
+                  this.spawnBlood(closestTarget.x, closestTarget.y);
+                }
+              } else {
+                u.x += ((closestTarget.x - u.x) / minDist) * u.speed * dt * 25;
+                u.y += ((closestTarget.y - u.y) / minDist) * u.speed * dt * 25;
+              }
+            }
+          } else {
+            if (u.targetEnemy && u.targetEnemy.hp > 0) {
+              const dist = Math.hypot(u.targetEnemy.x - u.x, u.targetEnemy.y - u.y);
+              const tile = this.state.tiles[Math.floor(u.y)]?.[Math.floor(u.x)];
+              const isGarrisoned = tile?.building?.type === 'WATCHTOWER';
+              const effectiveRange = isGarrisoned ? u.range * 1.8 : u.range;
+              const effectiveAtk = isGarrisoned ? u.attack * 1.5 : u.attack;
+
+              if (dist <= effectiveRange) {
+                if (u.attackCooldown <= 0) {
+                  if (u.type === 'archers') {
+                    this.fireArrow(u, u.targetEnemy, effectiveAtk);
+                    u.attackCooldown = 1.4;
+                  } else {
+                    u.targetEnemy.hp -= effectiveAtk;
+                    u.attackCooldown = 1.0;
+                    sound.playClash();
+                    this.spawnBlood(u.targetEnemy.x, u.targetEnemy.y);
+                  }
+                }
+              } else {
+                u.x += ((u.targetEnemy.x - u.x) / dist) * u.speed * dt * 25;
+                u.y += ((u.targetEnemy.y - u.y) / dist) * u.speed * dt * 25;
+              }
+            } else if (u.targetX !== null && u.targetY !== null) {
+              const dist = Math.hypot(u.targetX - u.x, u.targetY - u.y);
+              if (dist > 0.2) {
+                u.x += ((u.targetX - u.x) / dist) * u.speed * dt * 25;
+                u.y += ((u.targetY - u.y) / dist) * u.speed * dt * 25;
+              } else {
+                u.targetX = null;
+                u.targetY = null;
+              }
+            }
+          }
+        });
+
+        for (let i = this.state.projectiles.length - 1; i >= 0; i--) {
+          const pr = this.state.projectiles[i];
+          pr.progress += dt * 3.5;
+          pr.x += pr.vx * dt * 3.5;
+          pr.y += pr.vy * dt * 3.5;
+
+          if (pr.progress >= 1.0) {
+            if (pr.target && pr.target.hp > 0) {
+              pr.target.hp -= pr.dmg;
+              this.spawnBlood(pr.target.x, pr.target.y);
+            }
+            this.state.projectiles.splice(i, 1);
+          }
+        }
+
+        for (let i = this.state.units.length - 1; i >= 0; i--) {
+          const unit = this.state.units[i];
+          if (unit.hp <= 0) {
+            if (unit.isEnemy) {
+              this.logChronicle('Raider vanquished by defenders!', 'war');
+              this.state.resources.gold += 5;
+            } else {
+              this.logChronicle(`Heroic ${unit.type.toUpperCase()} fallen in battle!`, 'war');
+              if (unit.villagerRef) {
+                unit.villagerRef.health = 0;
+              }
+            }
+            this.state.units.splice(i, 1);
+          }
+        }
+
+        if (this.state.threatActive) {
+          const enemiesLeft = this.state.units.filter(u => u.isEnemy).length;
+          if (enemiesLeft === 0) {
+            this.state.threatActive = false;
+            this.state.threatWave += 1;
+            this.state.threatTimer = 220;
+            this.state.approval = Math.min(100, this.state.approval + 15);
+            this.logChronicle(`VICTORY! The fief repelled the invaders. Peasant approval surged!`, 'birth');
+            sound.playWarhorn();
+          }
+        }
+      }
+
+      spawnInvasion() {
+        this.state.threatActive = true;
+        const spawnCount = 4 + this.state.threatWave * 3;
+        const corner = Math.floor(Math.random() * 4);
+        let startX = 2, startY = 2;
+        if (corner === 1) { startX = MAP_SIZE - 3; startY = 2; }
+        else if (corner === 2) { startX = 2; startY = MAP_SIZE - 3; }
+        else if (corner === 3) { startX = MAP_SIZE - 3; startY = MAP_SIZE - 3; }
+
+        for (let i = 0; i < spawnCount; i++) {
+          this.state.units.push({
+            id: 'enemy_' + Date.now() + i,
+            type: 'bandit',
+            isEnemy: true,
+            x: startX + (Math.random() - 0.5) * 3,
+            y: startY + (Math.random() - 0.5) * 3,
+            hp: 85,
+            maxHp: 85,
+            attack: 12,
+            range: 1.2,
+            speed: 0.04,
+            targetX: MAP_SIZE / 2,
+            targetY: MAP_SIZE / 2,
+            targetEnemy: null,
+            attackCooldown: 0
+          });
+        }
+        sound.playWarhorn();
+        this.logChronicle(`ALARM! ${spawnCount} Bandits have invaded from the wilderness!`, 'war');
+      }
+
+      fireArrow(source, target, dmg) {
+        sound.playBowTwang();
+        const dist = Math.hypot(target.x - source.x, target.y - source.y);
+        this.state.projectiles.push({
+          x: source.x,
+          y: source.y,
+          vx: (target.x - source.x),
+          vy: (target.y - source.y),
+          dx: (target.x - source.x) / dist,
+          dy: (target.y - source.y) / dist,
+          progress: 0,
+          target: target,
+          dmg: dmg
+        });
+      }
+
+      spawnBlood(x, y) {
+        const p = this.renderer.gridToScreen(x, y);
+        for (let i = 0; i < 4; i++) {
+          this.state.particles.push({
+            x: p.x,
+            y: p.y - 10,
+            vx: (Math.random() - 0.5) * 1.5,
+            vy: (Math.random() - 0.5) * 1.5,
+            alpha: 1.0,
+            size: 2.5,
+            color: 'rgba(160, 20, 20, '
+          });
+        }
+      }
+
+      monthlyAccounting() {
+        const households = this.state.buildings.filter(b => b.type === 'BURGAGE_PLOT').length;
+        const taxIncome = Math.floor(households * (this.state.taxRate / 10));
+        this.state.resources.gold += taxIncome;
+
+        let foodTypes = 0;
+        if (this.state.resources.bread > 5) foodTypes++;
+        if (this.state.resources.meat > 5) foodTypes++;
+        if (this.state.resources.berries > 5) foodTypes++;
+        if (this.state.resources.vegetables > 5) foodTypes++;
+        if (this.state.resources.eggs > 5) foodTypes++;
+
+        let approvalDelta = foodTypes * 2 - Math.floor(this.state.taxRate * 0.6);
+
+        if (this.state.buildings.some(b => b.type === 'WOODEN_CHURCH')) approvalDelta += 4;
+        if (this.state.buildings.some(b => b.type === 'TAVERN')) approvalDelta += 5;
+
+        this.state.approval = Math.max(5, Math.min(100, this.state.approval + approvalDelta));
+
+        const totalCapacity = households * 4;
+        if (this.state.approval >= 55 && this.state.villagers.length < totalCapacity) {
+          const migrants = 1 + Math.floor(Math.random() * 2);
+          this.state.initVillagers(migrants);
+          this.logChronicle(`${migrants} weary peasant migrants settled in Ashborne.`, 'birth');
+        }
+      }
+
+      getTotalFood() {
+        const r = this.state.resources;
+        return r.bread + r.meat + r.berries + r.vegetables + r.eggs;
+      }
+
+      consumeFood(amount) {
+        const r = this.state.resources;
+        const foods = ['bread', 'meat', 'berries', 'vegetables', 'eggs'];
+        let needed = amount;
+        for (const f of foods) {
+          if (r[f] > 0) {
+            const take = Math.min(r[f], needed);
+            r[f] -= take;
+            needed -= take;
+            if (needed <= 0) break;
+          }
+        }
+      }
+
+      updateHUD() {
+        const r = this.state.resources;
+        document.getElementById('val-gold').textContent = Math.floor(r.gold);
+        document.getElementById('val-firewood').textContent = Math.floor(r.firewood);
+
+        const totalFood = Math.floor(this.getTotalFood());
+        const daysLeft = Math.floor(totalFood / Math.max(1, this.state.villagers.length * 0.03 * 30));
+        document.getElementById('val-food').textContent = totalFood;
+        document.getElementById('val-food-days').textContent = daysLeft;
+
+        const maxPop = this.state.buildings.filter(b => b.type === 'BURGAGE_PLOT').length * 4;
+        const idleWorkers = this.state.villagers.filter(v => v.job === 'Laborer' && !v.isMilitia).length;
+        document.getElementById('val-pop').textContent = `${this.state.villagers.length}/${maxPop}`;
+        document.getElementById('val-idle').textContent = idleWorkers;
+
+        const appEl = document.getElementById('val-approval');
+        appEl.textContent = `${Math.floor(this.state.approval)}%`;
+        if (this.state.approval >= 75) {
+          appEl.className = 'val val-approval';
+          document.getElementById('lbl-approval-status').textContent = 'Euphoric';
+        } else if (this.state.approval >= 50) {
+          appEl.className = 'val val-approval';
+          document.getElementById('lbl-approval-status').textContent = 'Content';
+        } else {
+          appEl.className = 'val val-danger';
+          document.getElementById('lbl-approval-status').textContent = 'Discontent';
+        }
+
+        const militiaCount = this.state.units.filter(u => !u.isEnemy).length;
+        document.getElementById('val-militia').textContent = `${militiaCount}/${this.state.villagers.length}`;
+      }
+
+      updateSeasonBadge() {
+        const season = SEASONS[this.state.seasonIndex];
+        const badge = document.getElementById('season-badge');
+        badge.className = `season-badge season-${season.toLowerCase()}`;
+        document.getElementById('season-icon').textContent = SEASON_ICONS[season];
+        document.getElementById('season-text').textContent = `${season}, Year ${this.state.year}`;
+      }
+
+      logChronicle(msg, type = 'event') {
+        const container = document.getElementById('chronicle-logs');
+        const item = document.createElement('div');
+        item.className = `log-item log-${type}`;
+        item.textContent = `[Y${this.state.year}] ${msg}`;
+        container.appendChild(item);
+        container.scrollTop = container.scrollHeight;
+      }
+
+      saveGame() {
+        try {
+          const serialized = {
+            year: this.state.year,
+            seasonIndex: this.state.seasonIndex,
+            seasonTimer: this.state.seasonTimer,
+            resources: this.state.resources,
+            approval: this.state.approval,
+            taxRate: this.state.taxRate,
+            threatTimer: this.state.threatTimer,
+            threatWave: this.state.threatWave,
+            villagers: this.state.villagers.map(v => ({
+              id: v.id, name: v.name, age: v.age, gender: v.gender,
+              health: v.health, warmth: v.warmth, hunger: v.hunger,
+              job: v.job, workplaceId: v.workplaceId, isMilitia: v.isMilitia,
+              x: v.x, y: v.y
+            })),
+            buildings: this.state.buildings.map(b => ({
+              id: b.id, type: b.type, x: b.x, y: b.y, w: b.w, h: b.h,
+              hp: b.hp, maxHp: b.maxHp, backyard: b.backyard
+            })),
+            roads: []
+          };
+
+          for (let y = 0; y < MAP_SIZE; y++) {
+            for (let x = 0; x < MAP_SIZE; x++) {
+              if (this.state.tiles[y][x].hasRoad) {
+                serialized.roads.push({ x, y, roadType: this.state.tiles[y][x].roadType });
+              }
+            }
+          }
+
+          localStorage.setItem('ashborne_save', JSON.stringify(serialized));
+        } catch (e) {
+          console.error('Save failed:', e);
+        }
+      }
+
+      loadGame() {
+        try {
+          const raw = localStorage.getItem('ashborne_save');
+          if (!raw) return;
+          const data = JSON.parse(raw);
+          this.state.year = data.year || 1;
+          this.state.seasonIndex = data.seasonIndex || 0;
+          this.state.seasonTimer = data.seasonTimer || 0;
+          this.state.resources = { ...this.state.resources, ...data.resources };
+          this.state.approval = data.approval || 65;
+          this.state.taxRate = data.taxRate || 5;
+          this.state.threatTimer = data.threatTimer || 180;
+          this.state.threatWave = data.threatWave || 1;
+
+          if (data.roads) {
+            data.roads.forEach(r => {
+              this.state.tiles[r.y][r.x].hasRoad = true;
+              this.state.tiles[r.y][r.x].roadType = r.roadType;
+            });
+          }
+
+          if (data.buildings) {
+            this.state.buildings = [];
+            data.buildings.forEach(b => {
+              const building = {
+                ...b,
+                assignedWorkers: [],
+                storage: {}
+              };
+              for (let dy = 0; dy < b.h; dy++) {
+                for (let dx = 0; dx < b.w; dx++) {
+                  this.state.tiles[b.y + dy][b.x + dx].building = building;
+                }
+              }
+              this.state.buildings.push(building);
+            });
+          }
+
+          if (data.villagers && data.villagers.length > 0) {
+            this.state.villagers = data.villagers.map(v => ({
+              ...v,
+              targetX: null,
+              targetY: null,
+              speed: 0.04
+            }));
+          }
+
+          this.updateSeasonBadge();
+          this.logChronicle('Loaded previously saved Ashborne fief chronicle.', 'event');
+        } catch (e) {
+          console.error('Load game failed:', e);
+        }
+      }
+
+      loop(timestamp) {
+        const dt = Math.min((timestamp - this.lastTime) / 1000, 0.1);
+        this.lastTime = timestamp;
+
+        this.update(dt);
+        this.renderer.render(
+          this.hoverTile,
+          this.selectedBuilding,
+          this.selectedUnit,
+          this.activePlacement
+        );
+        this.renderer.renderMinimap(document.getElementById('minimap-canvas'));
+
+        requestAnimationFrame((t) => this.loop(t));
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      window.game = new GameController();
+    });
+  </script>
+</body>
+</html>
