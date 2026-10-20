@@ -32,10 +32,15 @@ self.addEventListener('activate', (event) => {
   );
 });
 
+// 캐시 저장은 best-effort: 저장 공간 초과 등으로 put이 실패해도 받은 응답은 그대로 돌려준다.
 async function putIfOk(request, response) {
   if (response && response.ok && response.type === 'basic') {
-    const cache = await caches.open(CACHE_NAME);
-    await cache.put(request, response.clone());
+    try {
+      const cache = await caches.open(CACHE_NAME);
+      await cache.put(request, response.clone());
+    } catch (error) {
+      console.warn('Service worker cache write failed:', request.url, error);
+    }
   }
   return response;
 }
